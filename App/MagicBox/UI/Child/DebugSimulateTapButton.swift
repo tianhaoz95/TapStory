@@ -34,6 +34,8 @@ struct DebugSimulateTapButton: View {
 private struct DebugSimulateTapMenu: View {
     let onSelect: (ContentRecord) -> Void
 
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         NavigationStack {
             List {
@@ -64,7 +66,13 @@ private struct DebugSimulateTapMenu: View {
                 }
             }
             .navigationTitle("Simulate a Tap")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
         }
+        .presentationDragIndicator(.visible)
     }
 }
 #endif

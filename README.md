@@ -491,11 +491,53 @@ so there's no separate altool call at all anymore.) Build number is
 `$GITHUB_RUN_NUMBER` (always unique, auto-incrementing); bump
 `MARKETING_VERSION` in `project.yml` by hand when you want a new version
 string. Signing resolution uses an App Store Connect API key with
-`-allowProvisioningUpdates`, so Xcode fetches or creates whatever
-provisioning profiles it needs on the fly -- including registering the
-`com.tapstory.TapStory`/`com.tapstory.TapStory.watchkitapp` App IDs
-themselves the first time, if the API key's role allows it (App Manager
-or Admin -- plain "Developer" role cannot create new App IDs/profiles).
+`-allowProvisioningUpdates`, so a runner with no cached profiles fetches
+the two named App Store profiles on the fly (verified by clearing both of
+Xcode's profile caches locally and re-archiving from scratch).
+
+### Three things that will silently break this
+
+Each of these produced an error message pointing somewhere else entirely,
+so they're worth knowing before touching the release path:
+
+**The watch target must keep `SKIP_INSTALL: YES`.** `TapStoryWatch` ships
+*inside* `TapStory.app/Watch/`. If it's also installed standalone, the
+archive's `Products/Applications/` ends up with two `.app` bundles, Xcode
+can no longer tell which is the primary application, and it quietly omits
+the `ApplicationProperties` dictionary from the archive's `Info.plist`.
+Nothing complains at archive time. At export time every distribution
+method rejects the archive (it has no detectable platform) and you get:
+
+```
+error: exportArchive exportOptionsPlist error for key "method" expected one {} but found app-store-connect
+```
+
+That `{}` is the *empty set of valid methods* — the message is about
+there being no usable method at all, not about the string being wrong.
+Chasing the `method` value is a dead end. The workflow now asserts
+`ApplicationProperties` exists immediately after archiving, so this fails
+loudly and points at the real cause.
+
+**Release signs manually, not automatically.** Automatic signing's
+development-vs-distribution purpose resolution is unreliable through
+`xcodebuild` on the CLI — it kept resolving to *development* even with a
+Distribution identity present and `DEVELOPMENT_TEAM` passed explicitly,
+and then hard-conflicts if you also specify a Distribution identity
+("automatically signed for development, but a conflicting code signing
+identity Apple Distribution has been manually specified"). So `project.yml`
+pins `CODE_SIGN_IDENTITY: "Apple Distribution"` and a
+`PROVISIONING_PROFILE_SPECIFIER` per target for Release, and the export
+options repeat the same mapping under `provisioningProfiles` with
+`signingStyle: manual`. Don't add `CODE_SIGN_STYLE=Automatic` back to the
+archive command — it undoes all of it. (Debug still signs automatically,
+so day-to-day device builds are unaffected.)
+
+**Version keys must reference the build settings.** The `info:` blocks in
+`project.yml` set `CFBundleShortVersionString: "$(MARKETING_VERSION)"` and
+`CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"`. Without that, xcodegen
+writes literal `1.0` and `1` into the generated `Info.plist`, which
+silently overrides the build number CI passes as `CURRENT_PROJECT_VERSION`
+— every upload would arrive as build "1" and be rejected as a duplicate.
 
 **All 7 required secrets are configured:**
 

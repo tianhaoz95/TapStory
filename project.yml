@@ -9,7 +9,13 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    DEVELOPMENT_TEAM: ""
+    # Baked in directly (not sensitive -- it's the public Apple Developer
+    # team identifier, visible in any provisioning profile). Left empty,
+    # Debug builds can't resolve a signing identity for a real device, and
+    # xcodegen also writes it into PBXProject's TargetAttributes, which a
+    # `DEVELOPMENT_TEAM=...` override on the xcodebuild command line does
+    # not reach.
+    DEVELOPMENT_TEAM: "68CTFST8W2"
     CODE_SIGN_STYLE: Automatic
     TARGETED_DEVICE_FAMILY: "1"
     SUPPORTS_MACCATALYST: false
@@ -45,9 +51,38 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+      # Automatic signing's "purpose" (development vs distribution)
+      # resolution turned out to be unreliable for `xcodebuild archive` on
+      # the CLI regardless of DEVELOPMENT_TEAM/CODE_SIGN_IDENTITY overrides
+      # -- it kept deciding "development" even with a Distribution identity
+      # and team baked in, which then hard-conflicts with any explicit
+      # Distribution identity override ("automatically signed for
+      # development, but a conflicting code signing identity ... has been
+      # manually specified"). Manual signing for Release sidesteps that
+      # ambiguity entirely: exact certificate + exact provisioning profile,
+      # nothing left for Xcode to infer. The two profiles referenced below
+      # were created once via the App Store Connect API (IOS_APP_STORE
+      # type, tied to the Apple Distribution: HEJI TECHNOLOGY LLC
+      # certificate) and now persist on Apple's server.
+      configs:
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          PROVISIONING_PROFILE_SPECIFIER: "TapStory App Store Distribution - TapStory v2"
     info:
       path: App/TapStory/Info.plist
       properties:
+        # Must reference the build settings, not literals. xcodegen
+        # otherwise writes CFBundleVersion=1 / CFBundleShortVersionString=1.0
+        # into the plist, which silently overrides MARKETING_VERSION and
+        # CURRENT_PROJECT_VERSION -- including the per-run build number CI
+        # passes as CURRENT_PROJECT_VERSION, so every TestFlight upload
+        # would arrive as build "1" and be rejected as a duplicate.
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDisplayName: TapStory
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -102,10 +137,35 @@ targets:
         TARGETED_DEVICE_FAMILY: "4"
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
-        SKIP_INSTALL: NO
+        # MUST stay YES. The watch app reaches the device embedded inside
+        # TapStory.app (via the `dependencies: embed` above), so installing
+        # it standalone as well puts a second .app in the archive's
+        # Products/Applications/. Xcode then can't tell which is the primary
+        # application, silently omits ApplicationProperties from the
+        # archive's Info.plist, and -exportArchive fails with a completely
+        # unrelated-looking "exportOptionsPlist error for key \"method\""
+        # (the archive has no detectable platform, so every distribution
+        # method rejects it and the valid-method set is empty).
+        SKIP_INSTALL: YES
+      # See the matching comment on the TapStory target -- manual signing
+      # for Release avoids automatic signing's unreliable purpose
+      # resolution via the CLI.
+      configs:
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          PROVISIONING_PROFILE_SPECIFIER: "TapStory App Store Distribution - TapStoryWatch v2"
     info:
       path: App/TapStoryWatch/Info.plist
       properties:
+        # See the matching comment on the TapStory target -- the watch app's
+        # version must track the phone app's exactly or the upload is
+        # rejected for a version mismatch between the paired bundles.
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDisplayName: TapStory
         WKApplication: true
         UIDeviceFamily:

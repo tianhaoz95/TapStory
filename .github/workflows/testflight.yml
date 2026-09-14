@@ -73,6 +73,13 @@ jobs:
           # companion target, and an explicit -sdk forces that SDK onto the
           # entire target graph, silently breaking the embedded watch
           # target's own platform. See README.md / CLAUDE.md.
+          # Do NOT pass CODE_SIGN_STYLE here. Release is deliberately set to
+          # Manual signing in project.yml (see the comment there); overriding
+          # it back to Automatic reintroduces the development-vs-distribution
+          # purpose ambiguity this project already got burned by.
+          # -allowProvisioningUpdates fetches the two named App Store profiles
+          # from App Store Connect using the API key, so a fresh runner with
+          # no cached profiles works.
           xcodebuild archive \
             -project TapStory.xcodeproj \
             -scheme TapStory \
@@ -84,8 +91,20 @@ jobs:
             -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Automatic \
             CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
+
+          # Guard: the archive must declare ApplicationProperties, which Xcode
+          # only writes when exactly one app lands in Products/Applications.
+          # If the embedded watch target ever regains SKIP_INSTALL=NO it shows
+          # up as a second app, the key silently vanishes, and -exportArchive
+          # then fails with a misleading 'exportOptionsPlist error for key
+          # "method"'. Fail loudly here instead.
+          if ! /usr/libexec/PlistBuddy -c "Print :ApplicationProperties:CFBundleIdentifier" \
+               "$RUNNER_TEMP/TapStory.xcarchive/Info.plist" >/dev/null 2>&1; then
+            echo "::error::Archive is missing ApplicationProperties. Products/Applications contains:"
+            ls -1 "$RUNNER_TEMP/TapStory.xcarchive/Products/Applications" || true
+            exit 1
+          fi
 
       - name: Export & upload to TestFlight
         env:
@@ -100,6 +119,11 @@ jobs:
           # "app-store" is now rejected outright, not just deprecated) and
           # added a `destination: upload` key that makes -exportArchive
           # itself perform the upload -- no separate altool step needed.
+          #
+          # signingStyle must be manual and every bundle in the archive needs
+          # an explicit profile here, matching the PROVISIONING_PROFILE_SPECIFIER
+          # values in project.yml. Leaving it automatic makes the export ask
+          # Xcode to re-resolve signing and it lands back on development.
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -112,7 +136,14 @@ jobs:
             <key>teamID</key>
             <string>${DEVELOPMENT_TEAM}</string>
             <key>signingStyle</key>
-            <string>automatic</string>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.tapstory.TapStory</key>
+              <string>TapStory App Store Distribution - TapStory v2</string>
+              <key>com.tapstory.TapStory.watchkitapp</key>
+              <string>TapStory App Store Distribution - TapStoryWatch v2</string>
+            </dict>
             <key>uploadSymbols</key>
             <true/>
           </dict>

@@ -8,6 +8,7 @@ import SwiftUI
 /// silent no-op.
 struct NFCTagInspectorView: View {
     @StateObject private var reader = NFCReaderService()
+    @ObservedObject private var continuousListener = NFCReaderService.shared
     @State private var lastReference: TagReference?
     @State private var statusText = "Not scanning."
 
@@ -62,6 +63,21 @@ struct NFCTagInspectorView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+
+            if !continuousListener.recentInvalidations.isEmpty {
+                DisclosureGroup("Recent listening activity") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("What made the child screen's own \"Ready to Scan\" prompt restart recently -- useful if it seems to be reappearing too often.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        ForEach(continuousListener.recentInvalidations, id: \.self) { entry in
+                            Text(entry)
+                                .font(.system(.caption2, design: .monospaced))
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+            }
         }
         .padding()
         .navigationTitle("Test / Inspect a Tag")

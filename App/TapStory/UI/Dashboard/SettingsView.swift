@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject private var library = TagLibraryStore.shared
+    @ObservedObject private var settings = AppSettings.shared
     @State private var isResetConfirmationPresented = false
 
     var body: some View {
@@ -11,6 +12,17 @@ struct SettingsView: View {
                 Text("TapStory keeps everything on this device: no accounts, no internet connection required, no analytics. Stories, recordings, and your tag library live only in this phone's storage.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Show content on screen", isOn: $settings.isScreenDisplayEnabled)
+                Text(settings.isScreenDisplayEnabled
+                     ? "Tapping a tag shows the story page, word, or song on screen while it plays."
+                     : "Off (recommended): tapping a tag plays sound only. The screen stays exactly as it is right now, even while something is playing -- as close to \"not a screen\" as a phone can get.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Screen Display")
             }
 
             Section("Data") {

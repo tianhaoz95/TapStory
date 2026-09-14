@@ -6,24 +6,44 @@ import SwiftUI
 /// the idle prompt and whichever actor is currently playing.
 struct ChildLockedShellView: View {
     @ObservedObject private var coordinator = PlaybackCoordinator.shared
+    @ObservedObject private var settings = AppSettings.shared
     @State private var isParentChallengePresented = false
     @State private var isDashboardPresented = false
 
     var body: some View {
         ZStack {
-            if let record = coordinator.currentRecord,
-               let actor = ActorRegistry.shared.actor(for: record.type) {
-                actor.makeChildView(for: record) {
-                    coordinator.finishCurrent()
+            if settings.isScreenDisplayEnabled {
+                if let record = coordinator.currentRecord,
+                   let actor = ActorRegistry.shared.actor(for: record.type) {
+                    actor.makeChildView(for: record) {
+                        coordinator.finishCurrent()
+                    }
+                    .id(record) // ensures a fresh instance if the same content plays twice
+                } else if coordinator.lastUnresolvedTagID != nil || coordinator.lastUnrecognizedType != nil {
+                    // Either an orphaned tag (its library entry was deleted, or
+                    // it was written by a different phone) or a recognized-but-
+                    // corrupted record. Same calm, brief error either way.
+                    PlaybackErrorView(onFinished: { coordinator.clearError() })
+                } else {
+                    IdleTapPromptView()
                 }
-                .id(record) // ensures a fresh instance if the same content plays twice
-            } else if coordinator.lastUnresolvedTagID != nil || coordinator.lastUnrecognizedType != nil {
-                // Either an orphaned tag (its library entry was deleted, or
-                // it was written by a different phone) or a recognized-but-
-                // corrupted record. Same calm, brief error either way.
-                PlaybackErrorView(onFinished: { coordinator.clearError() })
             } else {
+                // Default mode: the screen never changes, ever -- "as if it
+                // were not a screen device." The actor view is still
+                // mounted (invisibly) so its playback/auto-advance timing
+                // logic runs exactly as it would if shown; only visibility
+                // differs. Audio is identical in both modes.
                 IdleTapPromptView()
+                if let record = coordinator.currentRecord,
+                   let actor = ActorRegistry.shared.actor(for: record.type) {
+                    actor.makeChildView(for: record) {
+                        coordinator.finishCurrent()
+                    }
+                    .id(record)
+                    .opacity(0)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                }
             }
 
             VStack {
@@ -73,6 +93,20 @@ struct ChildLockedShellView: View {
             } else {
                 coordinator.startListening()
             }
+        }
+        .onChange(of: coordinator.lastUnrecognizedType) { _ in clearErrorImmediatelyIfHidden() }
+        .onChange(of: coordinator.lastUnresolvedTagID) { _ in clearErrorImmediatelyIfHidden() }
+    }
+
+    /// In audio-only mode, error states are never shown at all -- not even
+    /// briefly -- so there's nothing to auto-dismiss via `PlaybackErrorView`.
+    /// Clear it right away instead of letting it linger unseen, which would
+    /// otherwise surface unexpectedly if the parent later turns screen
+    /// display on.
+    private func clearErrorImmediatelyIfHidden() {
+        guard !settings.isScreenDisplayEnabled else { return }
+        if coordinator.lastUnrecognizedType != nil || coordinator.lastUnresolvedTagID != nil {
+            coordinator.clearError()
         }
     }
 }

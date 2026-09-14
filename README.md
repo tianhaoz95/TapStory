@@ -8,6 +8,14 @@ a letter card plays that letter's sound and a matching word. Parents can
 record their own stories/words in-app and write them onto cheap NFC
 stickers, turning literally any toy into a "magic" one.
 
+**By default, the screen doesn't change at all, even while something is
+playing.** Tapping a tag plays audio only -- the resting idle screen (a
+static grey icon on black) stays exactly as it is, "as if it were not a
+screen device." An optional **Screen Display** toggle in Settings turns on
+showing the story page, word, or song on screen while it plays, for
+whoever wants that -- but audio-only is the default and the whole point.
+See **Screen Display: audio-only by default** below.
+
 This repo is a working Xcode project (SwiftUI + CoreNFC), not just a
 concept doc. It builds and its unit tests pass; see **Status** below for
 exactly what has and hasn't been verified on real hardware.
@@ -15,14 +23,42 @@ exactly what has and hasn't been verified on real hardware.
 ## Screenshots
 
 <p>
-  <img src="docs/screenshots/iphone-17-pro-max/idle.png" width="200" alt="Locked idle screen">
-  <img src="docs/screenshots/iphone-17-pro-max/story-magic-monkey.png" width="200" alt="A story playing">
-  <img src="docs/screenshots/iphone-17-pro-max/vocab-letter-m.png" width="200" alt="A vocabulary card">
-  <img src="docs/screenshots/iphone-17-pro-max/music-lullaby.png" width="200" alt="A lullaby playing">
+  <img src="docs/screenshots/iphone-17-pro-max/idle.png" width="200" alt="Locked idle screen -- also what's on screen by default while any content is playing">
+  <img src="docs/screenshots/iphone-17-pro-max/story-magic-monkey.png" width="200" alt="A story playing, with Screen Display turned on">
+  <img src="docs/screenshots/iphone-17-pro-max/vocab-letter-m.png" width="200" alt="A vocabulary card, with Screen Display turned on">
+  <img src="docs/screenshots/iphone-17-pro-max/music-lullaby.png" width="200" alt="A lullaby playing, with Screen Display turned on">
 </p>
 
 These are captured automatically -- see **Screenshot automation** below --
-not mocked up. More sizes/scenes are under `docs/screenshots/`.
+not mocked up. **The first image is what's actually on screen by default
+while any of these is playing** -- the other three show the *optional*
+Screen Display mode turned on. More sizes/scenes are under
+`docs/screenshots/`.
+
+## Screen Display: audio-only by default
+
+The single most important behavioral decision in this app: tapping a tag
+plays audio, full stop. Whether anything is ever *shown* on screen is a
+separate, off-by-default choice (`AppSettings.isScreenDisplayEnabled`,
+toggled in Dashboard -> Settings -> Screen Display).
+
+- **Off (default):** the idle screen (`IdleTapPromptView`) never changes,
+  regardless of what's playing. A `ContentActor`'s view is still mounted
+  in the hierarchy -- its `AVAudioPlayer`/`AVSpeechSynthesizer` timing and
+  page-auto-advance logic run exactly as normal -- but at `opacity(0)` and
+  `allowsHitTesting(false)`, so nothing is visible or tappable. Error
+  states (an orphaned tag, a corrupted record) are suppressed the same
+  way rather than flashing briefly, and are cleared immediately rather
+  than lingering unseen (see `ChildLockedShellView.clearErrorImmediatelyIfHidden()`).
+- **On:** the exact same actor views render normally -- this is the mode
+  the non-idle screenshots above were captured in.
+
+This was a deliberate correction partway through building this app: an
+earlier version always showed story pages/vocab cards/song art on screen,
+which was correctly flagged as working against the whole "screen-free"
+premise. Keeping both modes on one code path (rather than forking audio
+logic away from a separate "visual" path) means the two modes can never
+drift out of sync with each other.
 
 ## Landing page & App Store pages
 
@@ -78,6 +114,11 @@ since CoreNFC can't be exercised in the Simulator at all. This is
 dramatically more reliable than scripting actual taps, and, being
 `#if DEBUG`-gated, has zero footprint in a Release build.
 
+Since Screen Display defaults to off, a content scene also force-enables
+it (only on the simulator taking the screenshot, never on a real device)
+so the capture actually shows the optional visual mode instead of an
+idle screen that looks identical to the "idle" scene's own screenshot.
+
 ## Why this shape
 
 - **No accounts, no network, no analytics.** Everything -- bundled sample
@@ -107,8 +148,9 @@ dramatically more reliable than scripting actual taps, and, being
 | Area | Status |
 |---|---|
 | Project builds (`xcodebuild ... build`) | ✅ Verified, iOS Simulator SDK |
-| Unit tests (`xcodebuild ... test`) | ✅ 30/30 passing |
+| Unit tests (`xcodebuild ... test`) | ✅ 32/32 passing |
 | Idle/locked shell renders correctly | ✅ Verified via Simulator screenshot |
+| Screen Display off (default) truly shows no visual change while content plays | ✅ Verified via Simulator screenshot -- see **Screen Display: audio-only by default** |
 | On-device speech synthesis (`AVSpeechSynthesizer`) | ✅ Works in Simulator too (unlike CoreNFC) -- this is the default authoring path |
 | NFC read/write | ⚠️ **Cannot be exercised on the Simulator** -- CoreNFC requires a physical iPhone 7 or later. Code compiles against the real API; behavior needs to be verified on-device. |
 | Guided Access flow | ⚠️ Requires a physical device (Guided Access isn't meaningful in Simulator) |
@@ -138,13 +180,15 @@ App/TapStory/
     BundledLibrary.swift           # Loads the sample stories/cards/song for the picker UI
     AudioPlaybackController.swift  # Plays a MediaRef via AVAudioPlayer or AVSpeechSynthesizer
     PlaybackCoordinator.swift      # Resolves NFC tag ids -> content -> whatever the shell shows
+    AppSettings.swift              # Screen Display toggle (off by default), UserDefaults-backed
   Actors/Story, Actors/Vocab, Actors/Music/   # The three built-in ContentActor conformances
   NFC/                            # CoreNFC-specific code (kept isolated from Core)
     NFCReaderService.swift          # Continuous NDEF read session for the child shell
     NFCWriterService.swift          # Writes a TagReference (just an id) to a blank/reusable tag
     TagReference+NDEF.swift         # TagReference <-> NFCNDEFPayload bridging
   UI/
-    Child/            # What the toddler sees: idle prompt, locked shell, error state
+    Child/            # What the toddler sees: idle prompt, locked shell, error state,
+                       # ScreenshotAutomation.swift (#if DEBUG launch-argument scene driver)
     ParentGate/        # Invisible long-press hotspot + math-question challenge
     Dashboard/          # Parent's home screen: tag library, settings, Guided Access help
     CreateTag/          # Multi-step "make a new magic tag" flow (bundled or record-your-own)

@@ -16,6 +16,11 @@ import SwiftUI
 ///   `"vocab_card:letter_m"`, `"music:lullaby_01"` -- simulates tapping
 ///   that bundled item, via the same debug hook `DebugSimulateTapButton` uses.
 ///
+/// Since `AppSettings.isScreenDisplayEnabled` defaults to off, a content
+/// scene also force-enables it on the simulator taking the screenshot
+/// (never on a real user's device) so the capture actually shows the
+/// optional visual mode rather than the (identical-looking) idle screen.
+///
 /// Compiled out of Release builds entirely, same as the rest of this
 /// screenshot/debug tooling.
 enum ScreenshotAutomation {
@@ -45,6 +50,13 @@ enum ScreenshotAutomation {
 
             let items = BundledLibrary.items(forType: type)
             guard let item = items.first(where: { $0.fileName == "\(fileStem).json" }) else { return }
+            // Screen Display defaults to off (see AppSettings), so without
+            // this a content screenshot would show nothing but the idle
+            // screen. Marketing screenshots are meant to show what the
+            // optional visual mode looks like, so force it on here --
+            // this only ever runs in a screenshot-automation launch, never
+            // in a real build a user would see.
+            AppSettings.shared.isScreenDisplayEnabled = true
             PlaybackCoordinator.shared.debugSimulateTap(item.record)
         }
     }

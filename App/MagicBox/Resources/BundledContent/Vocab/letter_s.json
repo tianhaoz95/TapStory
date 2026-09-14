@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "S is for Sun",
+    "word": "Sun",
+    "letter": "S",
+    "symbol": "sun.max.fill",
+    "audio": { "source": "bundled", "ref": "letter_s_word" }
+  }
+}

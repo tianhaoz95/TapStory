@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "M is for Monkey",
+    "word": "Monkey",
+    "letter": "M",
+    "symbol": "pawprint.fill",
+    "audio": { "source": "bundled", "ref": "letter_m_word" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "type": "story",
+  "payload": {
+    "title": "Sleepy Bear's Bedtime",
+    "pages": [
+      { "caption": "Little Bear was very sleepy after a big day of playing.", "symbol": "pawprint.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p1" } },
+      { "caption": "Little Bear snuggled into a cozy cave under a blanket of leaves.", "symbol": "leaf.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p2" } },
+      { "caption": "Little Bear drifted off to sleep, dreaming sweet dreams. Goodnight!", "symbol": "moon.stars.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p3" } }
+    ]
+  }
+}

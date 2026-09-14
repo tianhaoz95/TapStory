@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "C is for Cat",
+    "word": "Cat",
+    "letter": "C",
+    "symbol": "cat.fill",
+    "audio": { "source": "bundled", "ref": "letter_c_word" }
+  }
+}

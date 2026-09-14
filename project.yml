@@ -1,0 +1,67 @@
+name: MagicBox
+options:
+  bundleIdPrefix: com.magicbox
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: false
+
+targets:
+  MagicBox:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: App/MagicBox
+    resources:
+      - path: App/MagicBox/Resources/BundledContent
+        type: folder
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.magicbox.MagicBox
+        PRODUCT_NAME: MagicBox
+        INFOPLIST_FILE: App/MagicBox/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/MagicBox/MagicBox.entitlements
+        GENERATE_INFOPLIST_FILE: false
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+    info:
+      path: App/MagicBox/Info.plist
+      properties:
+        CFBundleDisplayName: Magic Box
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        NFCReaderUsageDescription: "Magic Box reads the magic tag on your toy or card to start a story, song, or learning activity."
+        NSMicrophoneUsageDescription: "Magic Box lets parents record their own voice for custom stories and vocabulary cards."
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: App/MagicBox/MagicBox.entitlements
+      properties:
+        com.apple.developer.nfc.readersession.formats:
+          - NDEF
+    scheme:
+      testTargets:
+        - MagicBoxTests
+      gatherCoverageData: true
+
+  MagicBoxTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: MagicBoxTests
+    dependencies:
+      - target: MagicBox
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.magicbox.MagicBoxTests
+        GENERATE_INFOPLIST_FILE: true

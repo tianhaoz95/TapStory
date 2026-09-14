@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "type": "music",
+  "payload": {
+    "title": "Sleepy Time Hum",
+    "symbol": "moon.zzz.fill",
+    "audio": { "source": "bundled", "ref": "lullaby_01" },
+    "loop": true
+  }
+}

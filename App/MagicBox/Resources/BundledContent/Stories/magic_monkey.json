@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "type": "story",
+  "payload": {
+    "title": "The Magic Monkey",
+    "pages": [
+      { "caption": "Once upon a time, a magic monkey named Momo lived in a tall, tall tree.", "symbol": "tree.fill", "audio": { "source": "bundled", "ref": "story_magic_monkey_p1" } },
+      { "caption": "One sunny morning, Momo found a sparkly golden banana!", "symbol": "sparkles", "audio": { "source": "bundled", "ref": "story_magic_monkey_p2" } },
+      { "caption": "Momo took one bite, and whoosh! Momo could fly!", "symbol": "wind", "audio": { "source": "bundled", "ref": "story_magic_monkey_p3" } },
+      { "caption": "Momo shared the magic banana with all of Momo's friends. The end!", "symbol": "heart.fill", "audio": { "source": "bundled", "ref": "story_magic_monkey_p4" } }
+    ]
+  }
+}

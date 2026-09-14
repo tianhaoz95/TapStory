@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "B is for Ball",
+    "word": "Ball",
+    "letter": "B",
+    "symbol": "circle.fill",
+    "audio": { "source": "bundled", "ref": "letter_b_word" }
+  }
+}

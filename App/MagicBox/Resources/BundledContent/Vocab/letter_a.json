@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "A is for Apple",
+    "word": "Apple",
+    "letter": "A",
+    "symbol": "applelogo",
+    "audio": { "source": "bundled", "ref": "letter_a_word" }
+  }
+}

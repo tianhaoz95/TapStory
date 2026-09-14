@@ -1,0 +1,15 @@
+== Xcode / project generation ==
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+.build/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+== macOS ==
+.DS_Store
+
+== Generated audio intermediates (kept: final .m4a in Resources are committed) ==
+Scripts/.audio_work/

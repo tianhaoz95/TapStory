@@ -95,7 +95,14 @@ targets:
       path: App/TapStory/TapStory.entitlements
       properties:
         com.apple.developer.nfc.readersession.formats:
-          - NDEF
+          # "NDEF" is a long-deprecated entitlement value that current App
+          # Store Connect validation rejects outright ("NDEF is disallowed",
+          # ITMS-90778) regardless of deployment target -- confirmed via
+          # Apple Developer Forum threads on this exact error. "TAG" is the
+          # modern replacement and fully covers NFCNDEFReaderSession
+          # scanning/writing (this app never uses NFCTagReaderSession
+          # directly), so no code changes are needed, just this entitlement.
+          - TAG
     scheme:
       testTargets:
         - TapStoryTests

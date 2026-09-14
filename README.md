@@ -495,7 +495,7 @@ string. Signing resolution uses an App Store Connect API key with
 the two named App Store profiles on the fly (verified by clearing both of
 Xcode's profile caches locally and re-archiving from scratch).
 
-### Three things that will silently break this
+### Four things that will silently break this
 
 Each of these produced an error message pointing somewhere else entirely,
 so they're worth knowing before touching the release path:
@@ -538,6 +538,28 @@ so day-to-day device builds are unaffected.)
 writes literal `1.0` and `1` into the generated `Info.plist`, which
 silently overrides the build number CI passes as `CURRENT_PROJECT_VERSION`
 — every upload would arrive as build "1" and be rejected as a duplicate.
+
+**The NFC entitlement value must be `TAG`, not `NDEF`.** `NDEF` is a
+long-deprecated value for `com.apple.developer.nfc.readersession.formats`
+that current App Store Connect validation rejects outright:
+
+```
+Invalid entitlement for core nfc framework. The sdk version '26.5' and
+min OS version '16.0' are not compatible for the entitlement
+'com.apple.developer.nfc.readersession.formats' because 'NDEF is disallowed'.
+```
+
+(ITMS-90778, a known issue documented across Apple Developer Forum
+threads going back years -- confirmed this is unrelated to deployment
+target by testing both 16.0 and 17.0 against Apple's live validation
+servers, same error either time.) `TAG` is the modern replacement and
+fully covers `NFCNDEFReaderSession` scanning/writing -- this app never
+uses `NFCTagReaderSession` directly, so it's purely an entitlement fix, no
+Swift code changes. This one only surfaces during the App Store Connect
+upload/validation step itself; a plain local `-exportArchive` with
+`destination: export` succeeds regardless, since it never talks to
+Apple's servers -- which is why it wasn't caught by local export testing
+alone and needed `xcrun altool --validate-app` to reproduce outside CI.
 
 **All 7 required secrets are configured:**
 

@@ -109,7 +109,7 @@ Every actor's `audio` field is a `MediaRef { source, ref }` resolved by `MediaRe
 
 ### TestFlight release automation
 
-`.github/workflows/testflight.yml` (manual `workflow_dispatch` trigger only) archives, signs, and uploads a build via `xcrun altool`. Signing certificate secrets are already configured (uploaded from this machine's Apple Distribution identity); an App Store Connect API key (3 more secrets) still needs to be added by whoever has Account Holder/Admin access to the Apple Developer team, since creating one requires the App Store Connect web UI — see the README's "TestFlight release automation" section for the exact `gh secret set` commands. Same `-sdk`-flag gotcha as local builds applies here (see above) — the workflow deliberately never passes one.
+`.github/workflows/testflight.yml` (manual `workflow_dispatch` trigger only) archives, signs, and uploads a build via `xcodebuild -exportArchive` with `destination: upload` in its `exportOptionsPlist` — this Xcode version performs the App Store Connect upload directly during export, no separate `xcrun altool` step needed (and `method` must be `app-store-connect`; the older `app-store` value is rejected outright by this Xcode version, not just deprecated — see the export step's inline comment). All 7 required secrets are already configured: 4 from this machine's Apple Distribution identity, and 3 App Store Connect API key secrets recovered from this machine's `FA_ASC_KEY_ID`/`FA_ASC_ISSUER_ID`/`FA_KEY_LOCATION` env vars (a prior fastlane setup). Same `-sdk`-flag gotcha as local builds applies here (see above) — the workflow deliberately never passes one.
 
 ### Landing page / App Store pages
 

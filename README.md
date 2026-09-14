@@ -480,9 +480,15 @@ always a deliberate action.
 **What it does:** installs a signing certificate into a throwaway
 keychain scoped to that one job run, `xcodegen generate`s the project,
 archives `TapStory` in Release configuration (embedding `TapStoryWatch`
-automatically, same as a local archive would), exports a `.ipa` with
-automatic signing, and uploads it via `xcrun altool --upload-app`. Build
-number is `$GITHUB_RUN_NUMBER` (always unique, auto-incrementing); bump
+automatically, same as a local archive would), then exports *and
+uploads* it in one step via `xcodebuild -exportArchive` with
+`destination: upload` in its `exportOptionsPlist`. (An earlier version of
+this workflow used the classic `method: app-store` + separate `xcrun
+altool --upload-app` recipe from countless CI tutorials -- this Xcode
+version rejects `app-store` outright in favor of `app-store-connect`,
+and added `destination: upload` to fold the upload into the export step,
+so there's no separate altool call at all anymore.) Build number is
+`$GITHUB_RUN_NUMBER` (always unique, auto-incrementing); bump
 `MARKETING_VERSION` in `project.yml` by hand when you want a new version
 string. Signing resolution uses an App Store Connect API key with
 `-allowProvisioningUpdates`, so Xcode fetches or creates whatever
@@ -491,38 +497,31 @@ provisioning profiles it needs on the fly -- including registering the
 themselves the first time, if the API key's role allows it (App Manager
 or Admin -- plain "Developer" role cannot create new App IDs/profiles).
 
-**Secrets already configured** (uploaded from this machine's Keychain --
-an "Apple Distribution" certificate, which is what's required for
-TestFlight/App Store signing, as opposed to an "Apple Development" one
-which only works for local device installs):
+**All 7 required secrets are configured:**
 
-| Secret | Contents |
+| Secret | Source |
 |---|---|
-| `BUILD_CERTIFICATE_BASE64` | Base64 of a `.p12` export of the signing identity (all identities in the keychain export together as one bundle -- this is a `security export` limitation, not a deliberate choice; the workflow only ever uses the one Distribution identity) |
+| `BUILD_CERTIFICATE_BASE64` | Base64 of a `.p12` export of this machine's "Apple Distribution" signing identity (uploaded from Keychain -- required for TestFlight/App Store signing, as opposed to an "Apple Development" identity which only works for local device installs). All identities in the keychain export together as one bundle -- a `security export` limitation, not a deliberate choice; the workflow only ever uses the one Distribution identity. |
 | `P12_PASSWORD` | Password protecting that `.p12` (randomly generated, never used interactively) |
 | `KEYCHAIN_PASSWORD` | Password for the throwaway per-run CI keychain (randomly generated) |
 | `DEVELOPMENT_TEAM` | The Apple Developer Team ID the certificate belongs to |
+| `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64` | An existing App Store Connect API key, recovered from this machine's `FA_ASC_KEY_ID`/`FA_ASC_ISSUER_ID`/`FA_KEY_LOCATION` environment variables (left behind by an earlier fastlane setup) rather than freshly created |
 
-**Secrets you still need to add yourself** -- these require creating a
-fresh App Store Connect API key, which only an Account Holder/Admin on
-the team can do via the web UI, so there's no way to script this part:
+If these ever need to be rotated (e.g. the certificate expires, or a new
+machine needs to set this up from scratch), creating a fresh App Store
+Connect API key requires Account Holder/Admin access to the Apple
+Developer team via the App Store Connect web UI (Users and Access ->
+Integrations -> App Store Connect API -> Generate API Key, **App
+Manager** role or higher) -- there's no way to script that part. Apple
+only lets you download the resulting `.p8` once, so run these commands
+yourself right after, so the raw private key only ever touches your own
+terminal:
 
-1. appstoreconnect.apple.com -> Users and Access -> Integrations -> App
-   Store Connect API -> Generate API Key. Give it the **App Manager**
-   role (needed for automatic App ID/profile creation above).
-2. Apple lets you download the resulting `.p8` file exactly once --
-   don't lose it.
-3. Run these three commands yourself (so the raw private key only ever
-   touches your own terminal, never this chat):
-
-   ```sh
-   gh secret set APP_STORE_CONNECT_API_KEY_ID --repo tianhaoz95/TapStory --body "<the Key ID shown next to your new key>"
-   gh secret set APP_STORE_CONNECT_API_ISSUER_ID --repo tianhaoz95/TapStory --body "<the Issuer ID shown at the top of the Keys page>"
-   base64 -i AuthKey_XXXXXXXXXX.p8 | gh secret set APP_STORE_CONNECT_API_KEY_BASE64 --repo tianhaoz95/TapStory
-   ```
-
-Once those three exist alongside the four already configured, the
-workflow should run end-to-end unattended.
+```sh
+gh secret set APP_STORE_CONNECT_API_KEY_ID --repo tianhaoz95/TapStory --body "<the Key ID shown next to your new key>"
+gh secret set APP_STORE_CONNECT_API_ISSUER_ID --repo tianhaoz95/TapStory --body "<the Issuer ID shown at the top of the Keys page>"
+base64 -i AuthKey_XXXXXXXXXX.p8 | gh secret set APP_STORE_CONNECT_API_KEY_BASE64 --repo tianhaoz95/TapStory
+```
 
 ## App icon
 

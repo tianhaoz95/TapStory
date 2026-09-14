@@ -21,8 +21,14 @@ targets:
     sources:
       - path: App/MagicBox
     resources:
+      # Note: this does NOT preserve the Stories/Vocab/Music/Audio
+      # subfolder structure inside the built app -- Xcode's Copy Bundle
+      # Resources phase flattens grouped resources to the bundle's top
+      # level. Code that looks up these files (BundledLibrary,
+      # MediaResolver) is written to match that flat reality rather than
+      # assume subdirectories exist. The subfolders remain purely for our
+      # own organization on disk.
       - path: App/MagicBox/Resources/BundledContent
-        type: folder
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.magicbox.MagicBox

@@ -23,8 +23,10 @@ enum MediaResolver {
     static func url(for mediaRef: MediaRef) -> URL? {
         switch mediaRef.source {
         case .bundled:
-            return Bundle.main.url(forResource: mediaRef.ref, withExtension: "m4a", subdirectory: "BundledContent/Audio")
-                ?? Bundle.main.url(forResource: mediaRef.ref, withExtension: "m4a")
+            // Bundled resources land flat at the bundle's top level (see
+            // the comment on `BundledLibrary`), not under a subdirectory,
+            // regardless of how they're organized on disk.
+            return Bundle.main.url(forResource: mediaRef.ref, withExtension: "m4a")
         case .recording:
             return RecordingStore.shared.fileURL(forRecordingID: mediaRef.ref)
         }

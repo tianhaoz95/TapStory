@@ -107,6 +107,10 @@ Every actor's `audio` field is a `MediaRef { source, ref }` resolved by `MediaRe
 
 `ChildLockedShellView` deliberately does *not* apply `.ignoresSafeArea()` to its outer `ZStack`. Each child view (`IdleTapPromptView`, `StoryPlayerView`, `VocabCardView`, `MusicPlayerView`, `PlaybackErrorView`) instead calls `.ignoresSafeArea()` on its own `.background(...)` only, so the black/white fill bleeds edge-to-edge while text/icon content stays within the safe area. Applying it at the shell level once caused `StoryPlayerView`'s title to render directly under the Dynamic Island on real devices — caught via the screenshot automation, not by eye. Any new top-anchored content in a child-facing view should follow the same pattern.
 
+### TestFlight release automation
+
+`.github/workflows/testflight.yml` (manual `workflow_dispatch` trigger only) archives, signs, and uploads a build via `xcrun altool`. Signing certificate secrets are already configured (uploaded from this machine's Apple Distribution identity); an App Store Connect API key (3 more secrets) still needs to be added by whoever has Account Holder/Admin access to the Apple Developer team, since creating one requires the App Store Connect web UI — see the README's "TestFlight release automation" section for the exact `gh secret set` commands. Same `-sdk`-flag gotcha as local builds applies here (see above) — the workflow deliberately never passes one.
+
 ### Landing page / App Store pages
 
 `docs/` is a dependency-free static site (landing page, Privacy Policy, Terms, Support/FAQ) deployed to GitHub Pages by `.github/workflows/deploy-pages.yml` on every push to `main` that touches `docs/`. Screenshots under `docs/screenshots/` are generated, not hand-made — see `Scripts/capture_screenshots.sh`.

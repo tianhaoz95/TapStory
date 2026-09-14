@@ -469,6 +469,22 @@ reachable. This isn't meant to stop a determined adult -- it exists so a
 toddler can't stumble into settings, tag creation, or NFC writing, which
 is the standard pattern in kids' apps.
 
+## App icon
+
+Both `TapStory` and `TapStoryWatch` share one generated 1024x1024 source
+image (`Scripts/generate_app_icon.py`, Pillow-based): a black background
+matching `IdleTapPromptView` exactly, with a gift box in the app's own
+accent orange -- literally "wrap a toy up as a magic one," the core
+product idea, rather than an unrelated logo. Uses the modern single-size
+`AppIcon.appiconset` format (one `universal` image per platform; Xcode
+generates every smaller size and applies corner/circle masking itself --
+the source image must stay a plain opaque square, never pre-rounded).
+Regenerate with:
+
+```sh
+python3 Scripts/generate_app_icon.py
+```
+
 ## Bundled sample content
 
 Ships with 5 stories and 10 alphabet vocab cards so the app isn't silent

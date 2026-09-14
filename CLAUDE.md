@@ -46,6 +46,12 @@ Regenerate the bundled lullaby placeholder audio (the only bundled content that 
 ./Scripts/generate_sample_audio.sh
 ```
 
+Regenerate the shared 1024x1024 App Icon source (written into both `App/TapStory/Assets.xcassets/AppIcon.appiconset/` and `App/TapStoryWatch/Assets.xcassets/AppIcon.appiconset/` — same image, single-size icon set, no per-size exports needed on modern Xcode):
+
+```sh
+python3 Scripts/generate_app_icon.py
+```
+
 Capture App Store / landing-page screenshots (boots simulators, no manual interaction or XCUITest), then bake device-frame bezels into copies of them for display in README.md/the landing page (raw screenshots must stay unframed for possible App Store Connect reuse):
 
 ```sh

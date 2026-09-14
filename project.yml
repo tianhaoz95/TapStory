@@ -42,6 +42,7 @@ targets:
         INFOPLIST_FILE: App/TapStory/Info.plist
         CODE_SIGN_ENTITLEMENTS: App/TapStory/TapStory.entitlements
         GENERATE_INFOPLIST_FILE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
     info:
@@ -97,6 +98,7 @@ targets:
         PRODUCT_NAME: TapStoryWatch
         INFOPLIST_FILE: App/TapStoryWatch/Info.plist
         GENERATE_INFOPLIST_FILE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "4"
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"

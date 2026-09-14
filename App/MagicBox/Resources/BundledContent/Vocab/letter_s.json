@@ -6,6 +6,6 @@
     "word": "Sun",
     "letter": "S",
     "symbol": "sun.max.fill",
-    "audio": { "source": "bundled", "ref": "letter_s_word" }
+    "audio": { "source": "speech", "ref": "S! S is for Sun." }
   }
 }

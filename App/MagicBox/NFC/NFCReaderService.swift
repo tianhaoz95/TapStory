@@ -18,8 +18,10 @@ final class NFCReaderService: NSObject, ObservableObject {
     @Published private(set) var lastError: String?
     @Published private(set) var isSessionActive = false
 
-    /// Fired on the main thread whenever a valid `ContentRecord` is read.
-    var onRecordDetected: ((ContentRecord) -> Void)?
+    /// Fired on the main thread whenever a valid `TagReference` is read.
+    /// Resolving that id to actual content is the caller's job (see
+    /// `PlaybackCoordinator`) -- this service only knows about tags.
+    var onTagReferenceDetected: ((TagReference) -> Void)?
 
     private var session: NFCNDEFReaderSession?
     private var shouldKeepListening = false
@@ -63,9 +65,9 @@ extension NFCReaderService: NFCNDEFReaderSessionDelegate {
     func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
         for message in messages {
             for payload in message.records {
-                if let record = ContentRecord.from(ndefPayload: payload) {
+                if let reference = TagReference.from(ndefPayload: payload) {
                     DispatchQueue.main.async { [weak self] in
-                        self?.onRecordDetected?(record)
+                        self?.onTagReferenceDetected?(reference)
                     }
                     return
                 }

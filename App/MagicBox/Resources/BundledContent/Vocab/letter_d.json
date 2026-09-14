@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "D is for Dog",
+    "word": "Dog",
+    "letter": "D",
+    "symbol": "dog.fill",
+    "audio": { "source": "speech", "ref": "D! D is for Dog." }
+  }
+}

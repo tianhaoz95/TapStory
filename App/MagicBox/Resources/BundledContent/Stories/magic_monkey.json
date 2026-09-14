@@ -4,10 +4,10 @@
   "payload": {
     "title": "The Magic Monkey",
     "pages": [
-      { "caption": "Once upon a time, a magic monkey named Momo lived in a tall, tall tree.", "symbol": "tree.fill", "audio": { "source": "bundled", "ref": "story_magic_monkey_p1" } },
-      { "caption": "One sunny morning, Momo found a sparkly golden banana!", "symbol": "sparkles", "audio": { "source": "bundled", "ref": "story_magic_monkey_p2" } },
-      { "caption": "Momo took one bite, and whoosh! Momo could fly!", "symbol": "wind", "audio": { "source": "bundled", "ref": "story_magic_monkey_p3" } },
-      { "caption": "Momo shared the magic banana with all of Momo's friends. The end!", "symbol": "heart.fill", "audio": { "source": "bundled", "ref": "story_magic_monkey_p4" } }
+      { "caption": "Once upon a time, there was a magic monkey named Momo, who lived high up in a tall, tall tree.", "symbol": "tree.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "One sunny morning, Momo found a sparkly golden banana. Ooooh! Magic!", "symbol": "sparkles", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Momo took one little bite, and whoosh! Momo could fly all around the jungle!", "symbol": "wind", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Momo flew home and shared the magic banana with all of Momo's friends. The end!", "symbol": "heart.fill", "audio": { "source": "speech", "ref": "" } }
     ]
   }
 }

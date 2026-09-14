@@ -2,9 +2,13 @@ import SwiftUI
 
 /// A parent-facing debugging tool: scan any tag and see exactly what Magic
 /// Box would do with it, without handing the phone to a toddler first.
+/// Since a tag only ever stores a `TagReference` id, this also resolves it
+/// against `TagLibraryStore` -- an orphaned tag (deleted library entry, or
+/// written by a different phone) shows up clearly here rather than as a
+/// silent no-op.
 struct NFCTagInspectorView: View {
     @StateObject private var reader = NFCReaderService()
-    @State private var lastRecord: ContentRecord?
+    @State private var lastReference: TagReference?
     @State private var statusText = "Not scanning."
 
     var body: some View {
@@ -13,23 +17,36 @@ struct NFCTagInspectorView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            if let record = lastRecord {
+            if let reference = lastReference {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label(record.type, systemImage: "tag.fill")
+                    Label("Tag id: \(reference.id)", systemImage: "tag.fill")
                         .font(.headline)
-                    if let actor = ActorRegistry.shared.actor(for: record.type), actor.canHandle(record) {
-                        Label("Recognized - will play correctly", systemImage: "checkmark.circle.fill")
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+
+                    if let entry = TagLibraryStore.shared.entry(withID: reference.id) {
+                        Label("Resolves to \"\(entry.title)\"", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                        if let actor = ActorRegistry.shared.actor(for: entry.record.type), actor.canHandle(entry.record) {
+                            Label("Content is valid -- will play correctly", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else {
+                            Label("Content is malformed and won't play", systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                        }
+                        ScrollView {
+                            Text(prettyJSON(for: entry.record))
+                                .font(.system(.footnote, design: .monospaced))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxHeight: 220)
                     } else {
-                        Label("Unrecognized or malformed payload", systemImage: "exclamationmark.triangle.fill")
+                        Label("Not in this phone's \"My Tags\" library", systemImage: "questionmark.circle.fill")
                             .foregroundStyle(.orange)
+                        Text("This tag is orphaned on this device -- its library entry was deleted, or it was written by a different phone. Write new content to it from \"My Tags\" or \"Create a New Magic Tag.\"")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    ScrollView {
-                        Text(prettyJSON(for: record))
-                            .font(.system(.footnote, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(maxHeight: 260)
                 }
                 .padding()
                 .background(Color(.secondarySystemBackground))
@@ -53,8 +70,8 @@ struct NFCTagInspectorView: View {
 
     private func startScan() {
         statusText = "Hold a tag near the top of the phone..."
-        reader.onRecordDetected = { record in
-            lastRecord = record
+        reader.onTagReferenceDetected = { reference in
+            lastReference = reference
             statusText = "Read successfully."
             reader.stopListening()
         }

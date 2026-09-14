@@ -44,7 +44,7 @@ struct TagLibraryListView: View {
         .alert(item: $entryPendingDelete) { entry in
             Alert(
                 title: Text("Delete \"\(entry.title)\"?"),
-                message: Text("This removes it from your library. It won't erase any physical tags already written."),
+                message: Text("Any physical tag already written for this will stop working -- tags only store a reference back to this entry, not the content itself."),
                 primaryButton: .destructive(Text("Delete")) {
                     library.delete(id: entry.id)
                 },

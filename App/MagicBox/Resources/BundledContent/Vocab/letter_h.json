@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "H is for Heart",
+    "word": "Heart",
+    "letter": "H",
+    "symbol": "heart.fill",
+    "audio": { "source": "speech", "ref": "H! H is for Heart." }
+  }
+}

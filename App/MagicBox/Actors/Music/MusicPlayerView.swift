@@ -37,12 +37,6 @@ struct MusicPlayerView: View {
     }
 
     private func play() {
-        guard let url = MediaResolver.url(for: payload.audio) else {
-            missingAudio = true
-            return
-        }
-        audio.play(url: url, loop: payload.loop) {
-            onFinished()
-        }
+        audio.play(payload.audio, loop: payload.loop, fallbackSpeechText: payload.title, onFinished: onFinished, onFailure: { missingAudio = true })
     }
 }

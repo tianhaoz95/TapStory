@@ -6,7 +6,7 @@ struct RecordMusicStepView: View {
     @State private var title = ""
     @State private var symbol = "music.note"
     @State private var loop = true
-    @State private var recordingID: String?
+    @State private var audioRef: MediaRef?
 
     var body: some View {
         Form {
@@ -19,29 +19,27 @@ struct RecordMusicStepView: View {
                 SymbolPicker(selection: $symbol)
             }
 
-            Section("Recording") {
-                AudioRecorderControl(recordingID: recordingID) { id in
-                    recordingID = id
-                }
-                Text("Sing, hum, or play an instrument -- whatever this tag should trigger.")
+            Section("Sound") {
+                AudioSourceInput(mediaRef: $audioRef, textPlaceholder: "e.g. Time to sleep, sweet dreams...")
+                Text("For actual singing/humming, Record Voice usually sounds better than typed text.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
             Section {
                 Button("Continue") {
-                    guard let recordingID, !title.isEmpty else { return }
+                    guard let audioRef, !title.isEmpty else { return }
                     let payload = MusicPayload(
                         title: title,
                         symbol: symbol,
-                        audio: MediaRef(source: .recording, ref: recordingID),
+                        audio: audioRef,
                         loop: loop
                     )
                     guard let jsonPayload = try? JSONValue.from(payload) else { return }
                     let record = ContentRecord(type: MusicActor.typeIdentifier, payload: jsonPayload)
                     path.append(CreateTagRoute.writeTag(record: record, title: title))
                 }
-                .disabled(title.isEmpty || recordingID == nil)
+                .disabled(title.isEmpty || audioRef == nil)
             }
         }
         .navigationTitle("New Song")

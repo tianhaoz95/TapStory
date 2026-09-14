@@ -3,7 +3,10 @@ import SwiftUI
 /// Final step, reused both from the creation flow (fresh content) and from
 /// "My Tags" (re-writing an existing library entry to a replacement
 /// sticker). Either way it's the same act: hold a blank/reusable NTAG21x
-/// tag to the phone and commit the record to it.
+/// tag to the phone -- but what actually gets written is just a small
+/// `TagReference` id pointing back at this content in `TagLibraryStore`,
+/// not the content itself. That's why tag capacity never comes up here:
+/// any cheap sticker, even an NTAG213, comfortably fits an id.
 struct WriteTagStepView: View {
     let record: ContentRecord
     let title: String
@@ -30,9 +33,11 @@ struct WriteTagStepView: View {
                 .font(.title2.bold())
                 .multilineTextAlignment(.center)
 
-            Text(byteSizeCaption)
+            Text("Only a small reference is written to the tag -- any NFC sticker works, even the cheapest kind.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
 
             if let resultMessage {
                 Text(resultMessage)
@@ -67,11 +72,6 @@ struct WriteTagStepView: View {
         .onAppear(perform: ensureLibraryEntry)
     }
 
-    private var byteSizeCaption: String {
-        let size = (try? record.compactData.count) ?? 0
-        return "\(size) bytes -- fits an NTAG213 or larger sticker."
-    }
-
     private func ensureLibraryEntry() {
         guard entryID == nil else { return }
         if let libraryEntryID {
@@ -84,15 +84,16 @@ struct WriteTagStepView: View {
     }
 
     private func write() {
+        guard let entryID else { return }
         resultMessage = nil
         isWriting = true
-        NFCWriterService.shared.write(record) { result in
+        NFCWriterService.shared.write(TagReference(id: entryID)) { result in
             isWriting = false
             switch result {
             case .success:
                 isSuccess = true
                 resultMessage = "Tag written! Tap it against the phone anytime to play."
-                if let entryID { TagLibraryStore.shared.markWritten(id: entryID) }
+                TagLibraryStore.shared.markWritten(id: entryID)
             case .failure(let message):
                 isSuccess = false
                 resultMessage = message

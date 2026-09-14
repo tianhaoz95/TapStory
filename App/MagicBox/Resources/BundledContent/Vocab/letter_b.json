@@ -6,6 +6,6 @@
     "word": "Ball",
     "letter": "B",
     "symbol": "circle.fill",
-    "audio": { "source": "bundled", "ref": "letter_b_word" }
+    "audio": { "source": "speech", "ref": "B! B is for Ball." }
   }
 }

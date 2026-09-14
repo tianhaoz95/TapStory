@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "E is for Envelope",
+    "word": "Envelope",
+    "letter": "E",
+    "symbol": "envelope.fill",
+    "audio": { "source": "speech", "ref": "E! E is for Envelope." }
+  }
+}

@@ -6,6 +6,6 @@
     "word": "Monkey",
     "letter": "M",
     "symbol": "pawprint.fill",
-    "audio": { "source": "bundled", "ref": "letter_m_word" }
+    "audio": { "source": "speech", "ref": "M! M is for Monkey." }
   }
 }

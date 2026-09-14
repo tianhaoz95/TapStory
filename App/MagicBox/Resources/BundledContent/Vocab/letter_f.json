@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "F is for Fish",
+    "word": "Fish",
+    "letter": "F",
+    "symbol": "fish.fill",
+    "audio": { "source": "speech", "ref": "F! F is for Fish." }
+  }
+}

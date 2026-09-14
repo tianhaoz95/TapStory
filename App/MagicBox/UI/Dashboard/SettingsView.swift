@@ -27,7 +27,7 @@ struct SettingsView: View {
             Button("Erase", role: .destructive) { eraseEverything() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This deletes every tag in your library and every custom recording. It does not erase physical tags you've already written.")
+            Text("This deletes every entry in your library and every custom recording. Every physical tag you've written will stop working, since tags only store a reference back to this library, not the content itself.")
         }
     }
 

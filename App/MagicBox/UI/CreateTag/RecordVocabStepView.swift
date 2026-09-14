@@ -6,7 +6,7 @@ struct RecordVocabStepView: View {
     @State private var word = ""
     @State private var letter = ""
     @State private var symbol = CuratedSymbols.all[0]
-    @State private var recordingID: String?
+    @State private var audioRef: MediaRef?
 
     var body: some View {
         Form {
@@ -23,29 +23,24 @@ struct RecordVocabStepView: View {
             }
 
             Section("Pronunciation") {
-                AudioRecorderControl(recordingID: recordingID) { id in
-                    recordingID = id
-                }
-                Text("Say the word clearly, e.g. \u{201C}Monkey!\u{201D}")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                AudioSourceInput(mediaRef: $audioRef, textPlaceholder: "e.g. M! M is for Monkey.")
             }
 
             Section {
                 Button("Continue") {
-                    guard let recordingID, !word.isEmpty else { return }
+                    guard let audioRef, !word.isEmpty else { return }
                     let payload = VocabPayload(
                         title: displayTitle,
                         word: word,
                         letter: letter.isEmpty ? nil : letter,
                         symbol: symbol,
-                        audio: MediaRef(source: .recording, ref: recordingID)
+                        audio: audioRef
                     )
                     guard let jsonPayload = try? JSONValue.from(payload) else { return }
                     let record = ContentRecord(type: VocabActor.typeIdentifier, payload: jsonPayload)
                     path.append(CreateTagRoute.writeTag(record: record, title: displayTitle))
                 }
-                .disabled(word.isEmpty || recordingID == nil)
+                .disabled(word.isEmpty || audioRef == nil)
             }
         }
         .navigationTitle("New Vocab Card")

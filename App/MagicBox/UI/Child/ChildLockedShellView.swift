@@ -17,6 +17,11 @@ struct ChildLockedShellView: View {
                     coordinator.finishCurrent()
                 }
                 .id(record) // ensures a fresh instance if the same content plays twice
+            } else if coordinator.lastUnresolvedTagID != nil || coordinator.lastUnrecognizedType != nil {
+                // Either an orphaned tag (its library entry was deleted, or
+                // it was written by a different phone) or a recognized-but-
+                // corrupted record. Same calm, brief error either way.
+                PlaybackErrorView(onFinished: { coordinator.clearError() })
             } else {
                 IdleTapPromptView()
             }

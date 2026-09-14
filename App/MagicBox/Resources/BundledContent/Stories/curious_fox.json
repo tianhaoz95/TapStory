@@ -4,9 +4,9 @@
   "payload": {
     "title": "Curious Fox and the Rainbow",
     "pages": [
-      { "caption": "Curious Fox loved exploring, and one rainy day saw something amazing.", "symbol": "cloud.rain.fill", "audio": { "source": "bundled", "ref": "story_curious_fox_p1" } },
-      { "caption": "It was a big, beautiful rainbow across the meadow! Fox ran closer.", "symbol": "rainbow", "audio": { "source": "bundled", "ref": "story_curious_fox_p2" } },
-      { "caption": "Fox never found the end of the rainbow, but had the best day ever!", "symbol": "star.fill", "audio": { "source": "bundled", "ref": "story_curious_fox_p3" } }
+      { "caption": "Curious Fox loved exploring, and one rainy day, Fox spotted something amazing in the sky.", "symbol": "cloud.rain.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "It was a big, beautiful rainbow, stretching all the way across the meadow! Fox ran closer to see.", "symbol": "rainbow", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Fox never did find the end of the rainbow, but Fox had the best, most colorful day ever!", "symbol": "star.fill", "audio": { "source": "speech", "ref": "" } }
     ]
   }
 }

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "type": "story",
+  "payload": {
+    "title": "Duck's Rainy Day Splash",
+    "pages": [
+      { "caption": "Daisy Duck loved rainy days more than any other kind of day.", "symbol": "cloud.rain.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Daisy waddled outside and jumped into every puddle she could find. Splash, splash, splash!", "symbol": "drop.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "By the time the sun came out, Daisy was the happiest, splashiest duck in the whole pond.", "symbol": "sun.max.fill", "audio": { "source": "speech", "ref": "" } }
+    ]
+  }
+}

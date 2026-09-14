@@ -56,13 +56,7 @@ struct StoryPlayerView: View {
     private var currentPage: StoryPage { payload.pages[pageIndex] }
 
     private func playCurrentPage() {
-        guard let url = MediaResolver.url(for: currentPage.audio) else {
-            missingAudio = true
-            return
-        }
-        audio.play(url: url) {
-            advance()
-        }
+        audio.play(currentPage.audio, fallbackSpeechText: currentPage.caption, onFinished: { advance() }, onFailure: { missingAudio = true })
     }
 
     private func advance() {

@@ -28,9 +28,7 @@ struct AudioRecorderControl: View {
 
             if let recordingID, !recorder.isRecording {
                 Button {
-                    if let url = MediaResolver.url(for: MediaRef(source: .recording, ref: recordingID)) {
-                        playback.play(url: url)
-                    }
+                    playback.play(MediaRef(source: .recording, ref: recordingID), onFinished: {})
                 } label: {
                     Label("Play", systemImage: "play.circle")
                 }

@@ -6,6 +6,6 @@
     "word": "Apple",
     "letter": "A",
     "symbol": "applelogo",
-    "audio": { "source": "bundled", "ref": "letter_a_word" }
+    "audio": { "source": "speech", "ref": "A! A is for Apple." }
   }
 }

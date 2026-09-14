@@ -4,9 +4,9 @@
   "payload": {
     "title": "Sleepy Bear's Bedtime",
     "pages": [
-      { "caption": "Little Bear was very sleepy after a big day of playing.", "symbol": "pawprint.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p1" } },
-      { "caption": "Little Bear snuggled into a cozy cave under a blanket of leaves.", "symbol": "leaf.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p2" } },
-      { "caption": "Little Bear drifted off to sleep, dreaming sweet dreams. Goodnight!", "symbol": "moon.stars.fill", "audio": { "source": "bundled", "ref": "story_sleepy_bear_p3" } }
+      { "caption": "Little Bear was very sleepy after a big day of playing in the forest.", "symbol": "pawprint.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Little Bear snuggled into a cozy cave, pulled up a soft blanket of leaves, and yawned a big, big yawn.", "symbol": "leaf.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Little Bear closed both eyes and drifted off to sleep, dreaming sweet dreams. Goodnight, Little Bear.", "symbol": "moon.stars.fill", "audio": { "source": "speech", "ref": "" } }
     ]
   }
 }

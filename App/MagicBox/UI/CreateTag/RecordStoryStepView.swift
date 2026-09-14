@@ -4,9 +4,9 @@ private struct StoryPageDraft: Identifiable {
     let id = UUID()
     var caption: String = ""
     var symbol: String = CuratedSymbols.all[0]
-    var recordingID: String?
+    var audioRef: MediaRef?
 
-    var isComplete: Bool { !caption.isEmpty && recordingID != nil }
+    var isComplete: Bool { !caption.isEmpty && audioRef != nil }
 }
 
 struct RecordStoryStepView: View {
@@ -25,9 +25,7 @@ struct RecordStoryStepView: View {
                 Section("Page \(pageNumber(for: page))") {
                     TextField("What happens on this page?", text: $page.caption, axis: .vertical)
                     SymbolPicker(selection: $page.symbol)
-                    AudioRecorderControl(recordingID: page.recordingID) { id in
-                        page.recordingID = id
-                    }
+                    AudioSourceInput(mediaRef: $page.audioRef, textPlaceholder: "What should be said on this page?")
                     if pages.count > 1 {
                         Button(role: .destructive) {
                             pages.removeAll { $0.id == page.id }
@@ -66,8 +64,8 @@ struct RecordStoryStepView: View {
 
     private func finish() {
         let storyPages = pages.compactMap { draft -> StoryPage? in
-            guard let recordingID = draft.recordingID else { return nil }
-            return StoryPage(caption: draft.caption, symbol: draft.symbol, audio: MediaRef(source: .recording, ref: recordingID))
+            guard let audioRef = draft.audioRef else { return nil }
+            return StoryPage(caption: draft.caption, symbol: draft.symbol, audio: audioRef)
         }
         guard storyPages.count == pages.count else { return }
         let payload = StoryPayload(title: title, pages: storyPages)

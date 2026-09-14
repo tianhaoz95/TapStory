@@ -1,10 +1,14 @@
 import Foundation
 
-/// One entry in the parent's local "My Tags" library: the full record that
-/// was (or can be) written to a physical tag, plus metadata for the
-/// management UI. Keeping the whole `ContentRecord` here -- not just a
-/// reference -- means a lost or destroyed physical tag is never a real loss:
-/// the parent just re-writes the same record to a new sticker.
+/// One entry in the parent's local "My Tags" library. This is the actual
+/// content behind a tag -- physical tags store only this entry's `id` (as
+/// a `TagReference`), never the `record` itself. That means:
+/// - A lost or destroyed physical sticker is never a real content loss:
+///   just write the same `id` to a new one from "My Tags".
+/// - Deleting this entry (or the app, or the phone) orphans every physical
+///   tag that pointed at it -- there's nothing left for that id to
+///   resolve to. `TagLibraryStore.delete(id:)` callers must make that
+///   consequence clear before deleting.
 struct TagLibraryEntry: Codable, Equatable, Identifiable {
     var id: String
     var title: String
@@ -42,6 +46,13 @@ final class TagLibraryStore: ObservableObject {
     func add(_ entry: TagLibraryEntry) {
         entries.insert(entry, at: 0)
         save()
+    }
+
+    /// Resolves a `TagReference.id` read off a physical tag back to real
+    /// content. Returns nil for an orphaned tag -- one whose library entry
+    /// was deleted, or one written by a different phone/install.
+    func entry(withID id: String) -> TagLibraryEntry? {
+        entries.first { $0.id == id }
     }
 
     func markWritten(id: String) {

@@ -45,11 +45,7 @@ struct VocabCardView: View {
     }
 
     private func playOnce() {
-        guard let url = MediaResolver.url(for: payload.audio) else {
-            missingAudio = true
-            return
-        }
-        audio.play(url: url) {
+        audio.play(payload.audio, fallbackSpeechText: payload.word, onFinished: {
             repeatsRemaining -= 1
             if repeatsRemaining > 0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
@@ -60,6 +56,8 @@ struct VocabCardView: View {
                     onFinished()
                 }
             }
-        }
+        }, onFailure: {
+            missingAudio = true
+        })
     }
 }

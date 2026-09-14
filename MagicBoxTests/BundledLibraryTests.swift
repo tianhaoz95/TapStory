@@ -11,12 +11,12 @@ import XCTest
 final class BundledLibraryTests: XCTestCase {
     func testStoriesAreDiscoverable() {
         let items = BundledLibrary.items(forType: StoryActor.typeIdentifier)
-        XCTAssertEqual(items.count, 3, "expected the 3 bundled sample stories")
+        XCTAssertEqual(items.count, 5, "expected the 5 bundled sample stories")
     }
 
     func testVocabCardsAreDiscoverable() {
         let items = BundledLibrary.items(forType: VocabActor.typeIdentifier)
-        XCTAssertEqual(items.count, 5, "expected the 5 bundled alphabet vocab cards")
+        XCTAssertEqual(items.count, 10, "expected the 10 bundled alphabet vocab cards")
     }
 
     func testMusicIsDiscoverable() {
@@ -24,33 +24,52 @@ final class BundledLibraryTests: XCTestCase {
         XCTAssertEqual(items.count, 1, "expected the 1 bundled lullaby")
     }
 
-    func testEveryBundledItemsAudioActuallyResolves() throws {
+    /// A blank `.speech` ref is valid by design (`AudioPlaybackController`
+    /// falls back to the page's own caption/word/title so a story page
+    /// doesn't pay for the same sentence twice in the tag's NDEF payload)
+    /// -- `MediaResolver.resolve` itself doesn't know about that fallback,
+    /// so this checks each case appropriately: a non-blank ref must resolve
+    /// directly, a blank `.speech` ref must have real fallback text.
+    func testEveryBundledItemsAudioIsPlayable() throws {
         for actor in ActorRegistry.shared.allActorTypes {
             let typeID = type(of: actor).typeIdentifier
             for item in BundledLibrary.items(forType: typeID) {
-                let mediaRefs = try Self.audioRefs(in: item.record.payload)
-                XCTAssertFalse(mediaRefs.isEmpty, "\(item.title) has no audio references to check")
-                for ref in mediaRefs {
-                    XCTAssertNotNil(
-                        MediaResolver.url(for: ref),
-                        "\(item.title): bundled audio '\(ref.ref)' did not resolve to a real file in the bundle"
-                    )
+                let checks = try Self.audioChecks(in: item.record.payload)
+                XCTAssertFalse(checks.isEmpty, "\(item.title) has no audio to check")
+                for check in checks {
+                    if check.mediaRef.source == .speech && check.mediaRef.ref.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        XCTAssertNotNil(check.fallbackText, "\(item.title): blank speech ref has no fallback display text to associate it with")
+                        XCTAssertFalse(check.fallbackText?.isEmpty ?? true, "\(item.title): blank speech ref's fallback text is empty")
+                    } else {
+                        XCTAssertNotNil(
+                            MediaResolver.resolve(check.mediaRef),
+                            "\(item.title): bundled audio '\(check.mediaRef.ref)' (source: \(check.mediaRef.source.rawValue)) did not resolve"
+                        )
+                    }
                 }
             }
         }
     }
 
+    private struct AudioCheck {
+        var mediaRef: MediaRef
+        /// The page's caption / the card's word / the song's title -- what
+        /// `AudioPlaybackController` would fall back to for a blank speech ref.
+        var fallbackText: String?
+    }
+
     /// Walks a payload looking for every embedded `MediaRef` (a story has
-    /// one per page; vocab/music have exactly one), without needing to
-    /// know which actor's payload shape it is.
-    private static func audioRefs(in payload: JSONValue) throws -> [MediaRef] {
+    /// one per page; vocab/music have exactly one), pairing each with its
+    /// display text, without needing to know which actor's payload shape it is.
+    private static func audioChecks(in payload: JSONValue) throws -> [AudioCheck] {
         if let audioValue = payload["audio"], let ref = try? audioValue.decode(as: MediaRef.self) {
-            return [ref]
+            let fallback = payload["word"]?.stringValue ?? payload["title"]?.stringValue
+            return [AudioCheck(mediaRef: ref, fallbackText: fallback)]
         }
         if let pages = payload["pages"]?.arrayValue {
             return try pages.compactMap { page in
-                guard let audioValue = page["audio"] else { return nil }
-                return try audioValue.decode(as: MediaRef.self)
+                guard let audioValue = page["audio"], let ref = try? audioValue.decode(as: MediaRef.self) else { return nil }
+                return AudioCheck(mediaRef: ref, fallbackText: page["caption"]?.stringValue)
             }
         }
         return []

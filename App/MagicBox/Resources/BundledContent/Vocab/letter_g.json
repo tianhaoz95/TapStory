@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "type": "vocab_card",
+  "payload": {
+    "title": "G is for Gift",
+    "word": "Gift",
+    "letter": "G",
+    "symbol": "gift.fill",
+    "audio": { "source": "speech", "ref": "G! G is for Gift." }
+  }
+}

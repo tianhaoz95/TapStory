@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "type": "story",
+  "payload": {
+    "title": "The Brave Little Turtle",
+    "pages": [
+      { "caption": "Shelly the turtle was small, but Shelly was very, very brave.", "symbol": "tortoise.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "One day, a strong wind blew Shelly's friend's balloon high, high into a tree.", "symbol": "balloon.fill", "audio": { "source": "speech", "ref": "" } },
+      { "caption": "Shelly climbed slowly, slowly, slowly, and rescued the balloon. Hooray for brave Shelly!", "symbol": "star.fill", "audio": { "source": "speech", "ref": "" } }
+    ]
+  }
+}

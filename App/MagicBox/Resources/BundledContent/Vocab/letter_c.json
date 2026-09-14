@@ -6,6 +6,6 @@
     "word": "Cat",
     "letter": "C",
     "symbol": "cat.fill",
-    "audio": { "source": "bundled", "ref": "letter_c_word" }
+    "audio": { "source": "speech", "ref": "C! C is for Cat." }
   }
 }

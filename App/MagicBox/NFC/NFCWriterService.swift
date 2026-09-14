@@ -1,9 +1,10 @@
 import CoreNFC
 
-/// Writes a `ContentRecord` onto a blank (or reusable) NFC sticker. This is
-/// the "turn any toy into a magic toy" feature: a parent picks or records
-/// content in the app, then holds a cheap NTAG21x sticker to the phone to
-/// pair the two.
+/// Writes a `TagReference` (just an id -- see `TagReference`) onto a blank
+/// or reusable NFC sticker. This is the "turn any toy into a magic toy"
+/// feature: a parent picks or records content in the app (which saves it
+/// to `TagLibraryStore` under a stable id), then holds a cheap NTAG21x
+/// sticker to the phone to pair the two.
 final class NFCWriterService: NSObject, ObservableObject {
     static let shared = NFCWriterService()
 
@@ -15,15 +16,15 @@ final class NFCWriterService: NSObject, ObservableObject {
     @Published private(set) var isSessionActive = false
 
     private var activeSession: NFCNDEFReaderSession?
-    private var recordToWrite: ContentRecord?
+    private var referenceToWrite: TagReference?
     private var completion: ((WriteResult) -> Void)?
 
-    func write(_ record: ContentRecord, completion: @escaping (WriteResult) -> Void) {
+    func write(_ reference: TagReference, completion: @escaping (WriteResult) -> Void) {
         guard NFCAvailability.isSupported else {
             completion(.failure("This device doesn't support NFC."))
             return
         }
-        recordToWrite = record
+        referenceToWrite = reference
         self.completion = completion
         let session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: false)
         session.alertMessage = "Hold a blank tag near the top of the phone."
@@ -58,7 +59,7 @@ extension NFCWriterService: NFCNDEFReaderSessionDelegate {
     func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {}
 
     func readerSession(_ session: NFCNDEFReaderSession, didDetect tags: [NFCNDEFTag]) {
-        guard let record = recordToWrite else {
+        guard let reference = referenceToWrite else {
             session.invalidate(errorMessage: "Nothing to write.")
             return
         }
@@ -85,7 +86,7 @@ extension NFCWriterService: NFCNDEFReaderSessionDelegate {
                 case .readOnly:
                     self.finish(.failure("This tag is locked and can't be reprogrammed."), session: session)
                 case .readWrite:
-                    self.performWrite(record, to: tag, capacity: capacity, session: session)
+                    self.performWrite(reference, to: tag, capacity: capacity, session: session)
                 @unknown default:
                     self.finish(.failure("Unrecognized tag."), session: session)
                 }
@@ -93,12 +94,15 @@ extension NFCWriterService: NFCNDEFReaderSessionDelegate {
         }
     }
 
-    private func performWrite(_ record: ContentRecord, to tag: NFCNDEFTag, capacity: Int, session: NFCNDEFReaderSession) {
+    private func performWrite(_ reference: TagReference, to tag: NFCNDEFTag, capacity: Int, session: NFCNDEFReaderSession) {
         do {
-            let ndefPayload = try record.makeNDEFPayload()
+            let ndefPayload = try reference.makeNDEFPayload()
             let message = NFCNDEFMessage(records: [ndefPayload])
+            // In practice a TagReference is a couple dozen bytes -- this
+            // check exists only as a safety net for truly exotic tags, not
+            // because capacity is a real concern for what we write.
             guard message.length <= capacity else {
-                self.finish(.failure("This content is too big for this tag (\(message.length) of \(capacity) bytes). Try a larger sticker (NTAG215/216) or a shorter recording."), session: session)
+                self.finish(.failure("This tag is unusually small (\(capacity) bytes available, \(message.length) needed). Try a different sticker."), session: session)
                 return
             }
             tag.writeNDEF(message) { [weak self] error in
@@ -110,7 +114,7 @@ extension NFCWriterService: NFCNDEFReaderSessionDelegate {
                 }
             }
         } catch {
-            self.finish(.failure("Couldn't prepare this content for writing."), session: session)
+            self.finish(.failure("Couldn't prepare this tag reference for writing."), session: session)
         }
     }
 

@@ -455,11 +455,21 @@ of the platform, not a v1 gap -- see the `GuidedAccessHelpView` for the
 exact steps to hand to a parent.
 
 The one thing CoreNFC does *not* let an app suppress is its own small
-system sheet that appears while a scan session is active. TapStory treats
-this as an accepted, unavoidable part of the experience rather than
-something to fight -- see `NFCReaderService.swift` for the reasoning and
-how the continuous-listening session auto-restarts (including if a
-toddler taps the sheet's own Cancel/Done button).
+system sheet ("Ready to Scan") that appears while a scan session is
+active. TapStory treats this as an accepted, unavoidable part of the
+experience rather than something to fight -- see `NFCReaderService.swift`
+for the reasoning and how the continuous-listening session auto-restarts,
+including if a toddler taps the sheet's own Cancel/Done button.
+
+That sheet is modal and blocks touches to everything underneath it,
+**including the parental gate hotspot below**. Restarting it too quickly
+after a cancel would leave no way in at all -- if you ever see the "Ready
+to Scan" sheet reappearing before you can reach the hotspot, tap
+**Cancel** on the sheet once and you'll have about 8 seconds before it
+comes back (`parentGateRestartDelay` in `NFCReaderService.swift`) --
+plenty of time for the 3-second hold below. A quicker read/timeout
+restarts almost immediately instead, so the "just tap it" experience for
+the toddler isn't affected.
 
 ## Parental gate
 

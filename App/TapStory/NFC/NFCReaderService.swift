@@ -27,6 +27,20 @@ final class NFCReaderService: NSObject, ObservableObject {
     private var shouldKeepListening = false
     private let idleAlertMessage = "Hold your toy or card near the top of the phone."
 
+    /// Restart delay after a normal invalidation (a completed read, a
+    /// session timeout) -- kept short so the "always ready to tap" feel
+    /// isn't lost.
+    private let quickRestartDelay: TimeInterval = 0.4
+
+    /// Restart delay after the system sheet's own "Cancel"/"Done" button is
+    /// tapped. The sheet is modal and blocks all touches to the app
+    /// underneath, including `ParentGateHotspot`'s 3-second hold -- with
+    /// only `quickRestartDelay` before it reappeared, a parent had no
+    /// usable window to reach it at all. A deliberate tap on the system
+    /// button is a strong enough signal of intent (far more specific than a
+    /// toddler tapping the tag-detection area) to justify a longer gap here.
+    private let parentGateRestartDelay: TimeInterval = 8.0
+
     func startContinuousListening() {
         shouldKeepListening = true
         beginSession()
@@ -52,9 +66,9 @@ final class NFCReaderService: NSObject, ObservableObject {
         lastError = nil
     }
 
-    private func scheduleRestartIfNeeded() {
+    private func scheduleRestart(after delay: TimeInterval) {
         guard shouldKeepListening else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, self.shouldKeepListening else { return }
             self.beginSession()
         }
@@ -79,12 +93,15 @@ extension NFCReaderService: NFCNDEFReaderSessionDelegate {
         DispatchQueue.main.async {
             self.isSessionActive = false
         }
-        // Always restart while in listening mode -- including after a
-        // "Cancel"/"Done" tap on the system sheet. That sheet is the one bit
-        // of native UI CoreNFC won't let us hide, and a curious toddler will
-        // eventually tap it; the box should never just go quiet because of
-        // that. It only truly stops when `stopListening()` is called (the
-        // parent gate opening the dashboard).
-        scheduleRestartIfNeeded()
+        // Always restart while in listening mode -- the box should never
+        // just go quiet. That sheet is the one bit of native UI CoreNFC
+        // won't let us hide, and it only truly stops listening when
+        // `stopListening()` is called (the parent gate opening the
+        // dashboard). But a user-initiated cancel gets a much longer delay
+        // before restarting: the sheet is modal and blocks touches to
+        // everything underneath, including the invisible parent-gate
+        // hotspot, so restarting it quickly would leave no way in.
+        let isUserCancel = (error as? NFCReaderError)?.code == .readerSessionInvalidationErrorUserCanceled
+        scheduleRestart(after: isUserCancel ? parentGateRestartDelay : quickRestartDelay)
     }
 }

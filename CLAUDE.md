@@ -95,6 +95,8 @@ Every actor's `audio` field is a `MediaRef { source, ref }` resolved by `MediaRe
 - `DebugSimulateTapButton` — an in-app UI to manually pick bundled/library content and feed it through the same coordinator path a real tag read would use.
 - `ScreenshotAutomation` — reads `TAPSTORY_SCREENSHOT_SCENE` from the environment on launch (set via `SIMCTL_CHILD_...` when using `simctl launch`) to jump straight into a given scene, used by `Scripts/capture_screenshots.sh`.
 
+iOS's own "Ready to Scan" system sheet is layered on top of `IdleTapPromptView` for nearly the entire time it's visible — CoreNFC ties that sheet's lifetime 1:1 to the reader session, and the session has to run continuously for a zero-button tap to work (see `NFCReaderService`), so there's no API to keep listening without it showing. No app can restyle that sheet's title, icon, or color; the only customizable piece is one line of body text (`session.alertMessage`). It also typically covers close to the bottom half of the screen. `IdleTapPromptView`'s content is deliberately top-anchored rather than vertically centered for exactly this reason — centered content spends nearly all its time hidden behind the sheet.
+
 ### Watch companion app
 
 `TapStoryWatch` (`App/TapStoryWatch/`) is a modern single-target watchOS app (no separate WatchKit Extension target), embedded into `TapStory` via a `dependencies: embed` entry in `project.yml`. It's a remote control for the parent — toggle Screen Display, stop playback, or start a saved story from the wrist — specifically so acting on any of that never requires touching the phone a toddler is holding.

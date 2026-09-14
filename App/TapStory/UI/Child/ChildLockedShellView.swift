@@ -63,7 +63,12 @@ struct ChildLockedShellView: View {
                 }
             }
         }
-        .ignoresSafeArea()
+        // Deliberately NOT .ignoresSafeArea() here: each child view bleeds
+        // its own background to the edges individually (see e.g.
+        // StoryPlayerView), but keeps its actual content -- text, icons --
+        // within the safe area. A blanket ignoresSafeArea() at this level
+        // previously let top-anchored content (a story's title) render
+        // straight under the Dynamic Island/notch on real devices.
         .statusBarHidden(true)
         .onAppear {
             coordinator.startListening()

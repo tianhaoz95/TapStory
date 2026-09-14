@@ -45,7 +45,7 @@ struct StoryPlayerView: View {
                         .padding(.bottom, 32)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.systemBackground).ignoresSafeArea())
                 .animation(.easeInOut(duration: 0.4), value: pageIndex)
             }
         }

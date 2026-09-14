@@ -28,7 +28,7 @@ struct MusicPlayerView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.systemBackground).ignoresSafeArea())
                 .onAppear { pulse = true }
             }
         }

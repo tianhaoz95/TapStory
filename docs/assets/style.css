@@ -207,11 +207,10 @@ h1 {
 }
 
 .phone-frame {
-  border-radius: 34px;
-  border: 8px solid var(--surface);
-  box-shadow: var(--shadow), 0 0 0 1px var(--border);
-  overflow: hidden;
-  background: #000;
+  /* The device bezel + shadow are baked directly into these images (see
+     Scripts/frame_screenshots.py) rather than drawn with CSS, so the same
+     framed screenshots also render correctly in README.md on GitHub,
+     which strips <style> blocks and most inline styling from Markdown. */
   width: 100%;
   max-width: 220px;
 }
@@ -322,10 +321,7 @@ section {
 }
 
 .gallery .shot {
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  /* Framed images already carry their own bezel + shadow -- see .phone-frame. */
 }
 
 .gallery figcaption {

@@ -28,10 +28,10 @@ exactly what has and hasn't been verified on real hardware.
 ## Screenshots
 
 <p>
-  <img src="docs/screenshots/iphone-17-pro-max/idle.png" width="200" alt="Locked idle screen -- also what's on screen by default while any content is playing">
-  <img src="docs/screenshots/iphone-17-pro-max/story-magic-monkey.png" width="200" alt="A story playing, with Screen Display turned on">
-  <img src="docs/screenshots/iphone-17-pro-max/vocab-letter-m.png" width="200" alt="A vocabulary card, with Screen Display turned on">
-  <img src="docs/screenshots/iphone-17-pro-max/music-lullaby.png" width="200" alt="A lullaby playing, with Screen Display turned on">
+  <img src="docs/screenshots/framed/iphone-17-pro-max/idle.png" width="200" alt="Locked idle screen -- also what's on screen by default while any content is playing">
+  <img src="docs/screenshots/framed/iphone-17-pro-max/story-magic-monkey.png" width="200" alt="A story playing, with Screen Display turned on">
+  <img src="docs/screenshots/framed/iphone-17-pro-max/vocab-letter-m.png" width="200" alt="A vocabulary card, with Screen Display turned on">
+  <img src="docs/screenshots/framed/iphone-17-pro-max/music-lullaby.png" width="200" alt="A lullaby playing, with Screen Display turned on">
 </p>
 
 These are captured automatically -- see **Screenshot automation** below --
@@ -138,7 +138,8 @@ docs/
   privacy.html    # Privacy Policy (App Store Connect requires this URL)
   terms.html      # Terms of Use / EULA
   support.html    # Support page + FAQ (App Store Connect requires this URL too)
-  screenshots/    # Output of Scripts/capture_screenshots.sh
+  screenshots/    # Raw output of Scripts/capture_screenshots.sh
+    framed/       # Device-framed copies (Scripts/frame_screenshots.py) -- what's actually displayed
   assets/style.css
 ```
 
@@ -181,6 +182,33 @@ Since Screen Display defaults to off, a content scene also force-enables
 it (only on the simulator taking the screenshot, never on a real device)
 so the capture actually shows the optional visual mode instead of an
 idle screen that looks identical to the "idle" scene's own screenshot.
+
+**Device frames** (the bezel/shadow around each screenshot on the landing
+page and in this README) are baked directly into a separate copy of each
+image, not drawn with CSS:
+
+```sh
+python3 Scripts/frame_screenshots.py
+```
+
+Raw screenshots from `capture_screenshots.sh` are left untouched under
+`docs/screenshots/<device>/` (they need to stay pixel-accurate to real
+device dimensions in case they're ever reused for an actual App Store
+Connect screenshot upload); framed copies go to
+`docs/screenshots/framed/<device>/`. Baking the frame into the image
+itself, rather than styling it with CSS like `docs/index.html` otherwise
+does everywhere else, is a deliberate exception: GitHub strips
+`<style>` blocks and most inline styling when rendering `README.md`, so a
+CSS-only frame (fine for the landing page on its own) would just
+disappear there. Re-run this after any change to
+`capture_screenshots.sh`'s scenes or devices.
+
+Run both scripts in sequence any time bundled content, a screen's layout,
+or the device/scene list changes:
+
+```sh
+./Scripts/capture_screenshots.sh && python3 Scripts/frame_screenshots.py
+```
 
 ## Why this shape
 

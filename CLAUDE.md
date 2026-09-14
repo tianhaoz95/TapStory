@@ -46,10 +46,10 @@ Regenerate the bundled lullaby placeholder audio (the only bundled content that 
 ./Scripts/generate_sample_audio.sh
 ```
 
-Capture App Store / landing-page screenshots (boots simulators, no manual interaction or XCUITest):
+Capture App Store / landing-page screenshots (boots simulators, no manual interaction or XCUITest), then bake device-frame bezels into copies of them for display in README.md/the landing page (raw screenshots must stay unframed for possible App Store Connect reuse):
 
 ```sh
-./Scripts/capture_screenshots.sh
+./Scripts/capture_screenshots.sh && python3 Scripts/frame_screenshots.py
 ```
 
 **Never pass `-sdk iphonesimulator` (or any explicit `-sdk`) on these commands.** The app embeds a watchOS companion target (`TapStoryWatch`); an explicit `-sdk` forces that SDK onto the *entire* target graph, silently building the watch target for the wrong platform too, which compiles fine but fails at install time with an opaque "companion watch app validation" error. Plain `-destination` resolves each target to its own declared platform correctly.
@@ -96,6 +96,10 @@ Every actor's `audio` field is a `MediaRef { source, ref }` resolved by `MediaRe
 `Shared/WatchConnectivity/WatchMessage.swift` (`WatchCommand`, `PhoneStatus`) is compiled into *both* targets (listed in both targets' `sources:` in `project.yml`) rather than duplicated, so the wire format can't drift. Transport is `WCSession` (WatchConnectivity) — a local link between paired devices, no internet/accounts involved. `PhoneWatchConnectivityService` (iOS, in `App/TapStory/Watch/`) pushes a `PhoneStatus` snapshot via `updateApplicationContext` on every relevant change and applies incoming `WatchCommand`s to `AppSettings`/`PlaybackCoordinator`; `WatchConnectivityService` (watchOS) is the mirror image, sending commands and applying them optimistically to its local `status` before the phone confirms.
 
 `WCSessionDelegate` has iOS-only required methods (`sessionDidBecomeInactive`/`sessionDidDeactivate`) that are marked *unavailable* on watchOS — and `TapStoryWatch`'s sources get compiled under both SDKs (once for real watchOS, once under iOS as part of `TapStory`'s embed step), so those two methods are wrapped in `#if os(iOS)` in the watchOS-side file.
+
+### Child-facing views: background bleeds, content doesn't
+
+`ChildLockedShellView` deliberately does *not* apply `.ignoresSafeArea()` to its outer `ZStack`. Each child view (`IdleTapPromptView`, `StoryPlayerView`, `VocabCardView`, `MusicPlayerView`, `PlaybackErrorView`) instead calls `.ignoresSafeArea()` on its own `.background(...)` only, so the black/white fill bleeds edge-to-edge while text/icon content stays within the safe area. Applying it at the shell level once caused `StoryPlayerView`'s title to render directly under the Dynamic Island on real devices — caught via the screenshot automation, not by eye. Any new top-anchored content in a child-facing view should follow the same pattern.
 
 ### Landing page / App Store pages
 

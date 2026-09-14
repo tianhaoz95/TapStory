@@ -49,7 +49,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: App/TapStory/TapStory.entitlements
         GENERATE_INFOPLIST_FILE: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "0.1.1"
         CURRENT_PROJECT_VERSION: "1"
       # Automatic signing's "purpose" (development vs distribution)
       # resolution turned out to be unreliable for `xcodebuild archive` on
@@ -142,7 +142,7 @@ targets:
         GENERATE_INFOPLIST_FILE: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "4"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "0.1.1"
         CURRENT_PROJECT_VERSION: "1"
         # MUST stay YES. The watch app reaches the device embedded inside
         # TapStory.app (via the `dependencies: embed` above), so installing

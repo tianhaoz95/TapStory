@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct MagicBoxApp: App {
+struct TapStoryApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()

@@ -1,5 +1,5 @@
 import XCTest
-@testable import MagicBox
+@testable import TapStory
 
 final class ContentRecordTests: XCTestCase {
     func testCompactRoundTrip() throws {

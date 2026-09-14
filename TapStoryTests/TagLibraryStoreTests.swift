@@ -1,5 +1,5 @@
 import XCTest
-@testable import MagicBox
+@testable import TapStory
 
 /// `TagLibraryStore.shared` is a real persisted singleton (it's what
 /// backs "My Tags" and, now, what every physical tag's `TagReference`

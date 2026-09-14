@@ -48,7 +48,7 @@ struct AudioRecorderControl: View {
         .alert("Microphone access needed", isPresented: $permissionDenied) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Turn on microphone access for Magic Box in Settings to record custom stories and words.")
+            Text("Turn on microphone access for TapStory in Settings to record custom stories and words.")
         }
     }
 

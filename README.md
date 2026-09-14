@@ -1,4 +1,4 @@
-# Magic Box
+# TapStory
 
 An iPhone that behaves like a screen-free storytelling appliance for
 toddlers: the screen is locked and ignores touches, and the only way to
@@ -18,7 +18,7 @@ exactly what has and hasn't been verified on real hardware.
   content, custom recordings, the parent's tag library -- lives in local
   app storage. There is nothing to leak and nothing that requires an
   internet connection to work in a car or at a grandparent's house.
-- **The screen lock is app-level, not OS-level.** Magic Box cannot turn on
+- **The screen lock is app-level, not OS-level.** TapStory cannot turn on
   Guided Access itself (no app can -- see below); it locks itself by
   simply not putting anything tappable in front of the child except an
   invisible parent-gate hotspot. Guided Access is what removes the Home
@@ -57,9 +57,9 @@ handing this to an actual toddler.
 ## Project layout
 
 ```
-project.yml                     # xcodegen spec -- MagicBox.xcodeproj is generated, not committed
-App/MagicBox/
-  MagicBoxApp.swift              # @main entry point
+project.yml                     # xcodegen spec -- TapStory.xcodeproj is generated, not committed
+App/TapStory/
+  TapStoryApp.swift              # @main entry point
   Core/                          # Schema, actor registry, NFC-agnostic business logic
     JSONValue.swift               # Open JSON payload type
     ContentRecord.swift            # { schemaVersion, type, payload } -- the real content
@@ -84,7 +84,7 @@ App/MagicBox/
     CreateTag/          # Multi-step "make a new magic tag" flow (bundled or record-your-own)
     Root/               # App-wide chrome (tint, forced light appearance)
   Resources/BundledContent/   # Sample stories/vocab/music (JSON + generated placeholder audio)
-MagicBoxTests/            # Unit tests for the schema, NDEF bridging, and actor dispatch
+TapStoryTests/            # Unit tests for the schema, NDEF bridging, and actor dispatch
 Scripts/generate_sample_audio.sh   # Regenerates the placeholder narration via macOS `say`
 ```
 
@@ -96,18 +96,18 @@ regenerate it any time the project structure or `project.yml` changes:
 
 ```sh
 xcodegen generate
-open MagicBox.xcodeproj
+open TapStory.xcodeproj
 ```
 
 Or from the command line:
 
 ```sh
 xcodegen generate
-xcodebuild -project MagicBox.xcodeproj -scheme MagicBox \
+xcodebuild -project TapStory.xcodeproj -scheme TapStory \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   -configuration Debug CODE_SIGNING_ALLOWED=NO build
 
-xcodebuild -project MagicBox.xcodeproj -scheme MagicBox \
+xcodebuild -project TapStory.xcodeproj -scheme TapStory \
   -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -configuration Debug CODE_SIGNING_ALLOWED=NO test
 ```
@@ -115,7 +115,7 @@ xcodebuild -project MagicBox.xcodeproj -scheme MagicBox \
 **To actually test NFC and Guided Access**, build to a physical iPhone 7 or
 later: open the project in Xcode, pick your phone as the run destination,
 set your own Team under Signing & Capabilities (bundle id is currently the
-placeholder `com.magicbox.MagicBox` -- change it to something under your
+placeholder `com.tapstory.TapStory` -- change it to something under your
 own Apple ID/team), and run.
 
 ## Schema & extensibility
@@ -221,14 +221,14 @@ project) -- any capacity, NTAG213 included, is more than enough now.
 Apple does not provide any API for an app to turn on Guided Access itself
 -- it's deliberately kept under the parent's direct, physical control (a
 triple-click of the side button, and a separate Guided Access passcode).
-Magic Box can't automate this, and the in-app **Guided Access Setup**
+TapStory can't automate this, and the in-app **Guided Access Setup**
 screen (Dashboard -> Guided Access Setup) walks through the one-time setup
 and the per-session ritual instead. This is a real, permanent constraint
 of the platform, not a v1 gap -- see the `GuidedAccessHelpView` for the
 exact steps to hand to a parent.
 
 The one thing CoreNFC does *not* let an app suppress is its own small
-system sheet that appears while a scan session is active. Magic Box treats
+system sheet that appears while a scan session is active. TapStory treats
 this as an accepted, unavoidable part of the experience rather than
 something to fight -- see `NFCReaderService.swift` for the reasoning and
 how the continuous-listening session auto-restarts (including if a
@@ -245,7 +245,7 @@ is the standard pattern in kids' apps.
 ## Bundled sample content
 
 Ships with 5 stories and 10 alphabet vocab cards so the app isn't silent
-on first run (`App/MagicBox/Resources/BundledContent`). Their narration
+on first run (`App/TapStory/Resources/BundledContent`). Their narration
 uses `MediaRef(source: .speech, ...)` -- spoken live, on-device, from the
 text in their JSON -- the same mechanism a parent's own typed content
 uses, so these double as a working demo of that path.
@@ -293,7 +293,7 @@ swapping for real artwork before shipping.
   Enhanced/Premium voice under Settings > Accessibility > Spoken Content.
 - **App Store submission** (since "eventually" was the stated goal): kids
   category apps get extra review scrutiny, particularly around anything
-  that resembles restricting normal iOS navigation (Magic Box doesn't
+  that resembles restricting normal iOS navigation (TapStory doesn't
   actually do this -- it just declines to put anything else on screen --
   but be ready to explain that clearly in review notes), microphone usage
   (already justified via `NSMicrophoneUsageDescription`), and the general

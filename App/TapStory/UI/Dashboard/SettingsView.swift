@@ -8,7 +8,7 @@ struct SettingsView: View {
         List {
             Section("About") {
                 LabeledContent("Version", value: Bundle.main.appVersionString)
-                Text("Magic Box keeps everything on this device: no accounts, no internet connection required, no analytics. Stories, recordings, and your tag library live only in this phone's storage.")
+                Text("TapStory keeps everything on this device: no accounts, no internet connection required, no analytics. Stories, recordings, and your tag library live only in this phone's storage.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

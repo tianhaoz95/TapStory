@@ -1,6 +1,6 @@
-name: MagicBox
+name: TapStory
 options:
-  bundleIdPrefix: com.magicbox
+  bundleIdPrefix: com.tapstory
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
@@ -14,12 +14,12 @@ settings:
     SUPPORTS_MACCATALYST: false
 
 targets:
-  MagicBox:
+  TapStory:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: App/MagicBox
+      - path: App/TapStory
     resources:
       # Note: this does NOT preserve the Stories/Vocab/Music/Audio
       # subfolder structure inside the built app -- Xcode's Copy Bundle
@@ -28,46 +28,46 @@ targets:
       # MediaResolver) is written to match that flat reality rather than
       # assume subdirectories exist. The subfolders remain purely for our
       # own organization on disk.
-      - path: App/MagicBox/Resources/BundledContent
+      - path: App/TapStory/Resources/BundledContent
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.magicbox.MagicBox
-        PRODUCT_NAME: MagicBox
-        INFOPLIST_FILE: App/MagicBox/Info.plist
-        CODE_SIGN_ENTITLEMENTS: App/MagicBox/MagicBox.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.tapstory.TapStory
+        PRODUCT_NAME: TapStory
+        INFOPLIST_FILE: App/TapStory/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/TapStory/TapStory.entitlements
         GENERATE_INFOPLIST_FILE: false
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
     info:
-      path: App/MagicBox/Info.plist
+      path: App/TapStory/Info.plist
       properties:
-        CFBundleDisplayName: Magic Box
+        CFBundleDisplayName: TapStory
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIRequiresFullScreen: true
-        NFCReaderUsageDescription: "Magic Box reads the magic tag on your toy or card to start a story, song, or learning activity."
-        NSMicrophoneUsageDescription: "Magic Box lets parents record their own voice for custom stories and vocabulary cards."
+        NFCReaderUsageDescription: "TapStory reads the tag on your toy or card to start a story, song, or learning activity."
+        NSMicrophoneUsageDescription: "TapStory lets parents record their own voice for custom stories and vocabulary cards."
         ITSAppUsesNonExemptEncryption: false
     entitlements:
-      path: App/MagicBox/MagicBox.entitlements
+      path: App/TapStory/TapStory.entitlements
       properties:
         com.apple.developer.nfc.readersession.formats:
           - NDEF
     scheme:
       testTargets:
-        - MagicBoxTests
+        - TapStoryTests
       gatherCoverageData: true
 
-  MagicBoxTests:
+  TapStoryTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: MagicBoxTests
+      - path: TapStoryTests
     dependencies:
-      - target: MagicBox
+      - target: TapStory
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.magicbox.MagicBoxTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.tapstory.TapStoryTests
         GENERATE_INFOPLIST_FILE: true

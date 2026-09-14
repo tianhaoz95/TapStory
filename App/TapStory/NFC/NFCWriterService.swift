@@ -82,7 +82,7 @@ extension NFCWriterService: NFCNDEFReaderSessionDelegate {
                 }
                 switch status {
                 case .notSupported:
-                    self.finish(.failure("This tag can't store data and can't be used with Magic Box."), session: session)
+                    self.finish(.failure("This tag can't store data and can't be used with TapStory."), session: session)
                 case .readOnly:
                     self.finish(.failure("This tag is locked and can't be reprogrammed."), session: session)
                 case .readWrite:

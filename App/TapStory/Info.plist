@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Magic Box</string>
+	<string>TapStory</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,9 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NFCReaderUsageDescription</key>
-	<string>Magic Box reads the magic tag on your toy or card to start a story, song, or learning activity.</string>
+	<string>TapStory reads the tag on your toy or card to start a story, song, or learning activity.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Magic Box lets parents record their own voice for custom stories and vocabulary cards.</string>
+	<string>TapStory lets parents record their own voice for custom stories and vocabulary cards.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

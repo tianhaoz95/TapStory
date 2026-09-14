@@ -1,5 +1,5 @@
 import XCTest
-@testable import MagicBox
+@testable import TapStory
 
 /// Hosted inside the app process (see the note in BundledLibraryTests), so
 /// `Bundle.main` lookups here are against the real app bundle.

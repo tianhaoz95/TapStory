@@ -1,7 +1,7 @@
 import XCTest
-@testable import MagicBox
+@testable import TapStory
 
-/// These run hosted inside the MagicBox.app process (see `TEST_HOST` /
+/// These run hosted inside the TapStory.app process (see `TEST_HOST` /
 /// `bundle_loader` wiring from the app<->test target dependency), so
 /// `Bundle.main` here is genuinely the app bundle -- this is what caught
 /// bundled content silently resolving to zero items after Xcode flattened

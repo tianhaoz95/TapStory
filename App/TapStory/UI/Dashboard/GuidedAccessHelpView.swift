@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Magic Box cannot turn on Guided Access itself -- there is no public API
+/// TapStory cannot turn on Guided Access itself -- there is no public API
 /// for an app to do that, by Apple's design. This screen walks a parent
 /// through the one-time setup and the per-session ritual instead.
 struct GuidedAccessHelpView: View {
@@ -12,11 +12,11 @@ struct GuidedAccessHelpView: View {
                 stepRow(3, "Optional: turn on \"Accessibility Shortcut\" for Guided Access so you can also start/stop it with a triple-click of the side button.")
             }
 
-            Section("Every time you hand over Magic Box") {
-                stepRow(1, "Open Magic Box.")
+            Section("Every time you hand over TapStory") {
+                stepRow(1, "Open TapStory.")
                 stepRow(2, "Triple-click the side button (or top button on older iPhones).")
-                stepRow(3, "Tap Options to circle out any areas you want to disable (usually not needed -- Magic Box already ignores touches outside the parent gate), then tap Start.")
-                stepRow(4, "Hand the phone to your child. They can now only use Magic Box, and only by tapping tags -- the Home gesture, App Switcher, and other apps are unreachable.")
+                stepRow(3, "Tap Options to circle out any areas you want to disable (usually not needed -- TapStory already ignores touches outside the parent gate), then tap Start.")
+                stepRow(4, "Hand the phone to your child. They can now only use TapStory, and only by tapping tags -- the Home gesture, App Switcher, and other apps are unreachable.")
             }
 
             Section("When you want it back") {
@@ -26,7 +26,7 @@ struct GuidedAccessHelpView: View {
             }
 
             Section {
-                Text("Why can't Magic Box just do this automatically?")
+                Text("Why can't TapStory just do this automatically?")
                     .font(.subheadline.bold())
                 Text("Apple deliberately keeps Guided Access under the parent's direct control -- no app, including this one, is allowed to enable device-wide lockdown on its own. That's a good thing: it means only you decide when the phone is locked to a single app.")
                     .font(.footnote)

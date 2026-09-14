@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 VOICE="Samantha"
-OUT_DIR="App/MagicBox/Resources/BundledContent/Audio"
+OUT_DIR="App/TapStory/Resources/BundledContent/Audio"
 WORK_DIR="Scripts/.audio_work"
 mkdir -p "$OUT_DIR" "$WORK_DIR"
 

@@ -1,6 +1,6 @@
 import XCTest
 import CoreNFC
-@testable import MagicBox
+@testable import TapStory
 
 /// `TagReference` -- not `ContentRecord` -- is what actually gets written
 /// to a physical tag: just an id pointing back into `TagLibraryStore`.

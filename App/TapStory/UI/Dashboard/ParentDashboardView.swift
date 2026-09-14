@@ -37,7 +37,7 @@ struct ParentDashboardView: View {
                     }
                 }
             }
-            .navigationTitle("Magic Box")
+            .navigationTitle("TapStory")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

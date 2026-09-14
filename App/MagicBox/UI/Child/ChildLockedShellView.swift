@@ -22,6 +22,12 @@ struct ChildLockedShellView: View {
             }
 
             VStack {
+                HStack {
+                    #if DEBUG
+                    DebugSimulateTapButton()
+                    #endif
+                    Spacer()
+                }
                 Spacer()
                 HStack {
                     Spacer()

@@ -32,6 +32,16 @@ final class PlaybackCoordinator: ObservableObject {
         currentRecord = nil
     }
 
+    #if DEBUG
+    /// Feeds a record through exactly the same path a real NFC read would,
+    /// for testing in the iOS Simulator -- which has no NFC hardware and
+    /// Apple provides no way to simulate a scan for. Compiled out of
+    /// Release builds entirely; see `DebugSimulateTapButton`.
+    func debugSimulateTap(_ record: ContentRecord) {
+        handle(record)
+    }
+    #endif
+
     private func handle(_ record: ContentRecord) {
         guard let actor = ActorRegistry.shared.actor(for: record.type), actor.canHandle(record) else {
             lastUnrecognizedType = record.type

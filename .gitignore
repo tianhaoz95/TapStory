@@ -13,3 +13,6 @@ DerivedData/
 
 == Generated audio intermediates (kept: final .m4a in Resources are committed) ==
 Scripts/.audio_work/
+
+== Claude Code session state (not project content) ==
+.claude/

@@ -12,6 +12,72 @@ This repo is a working Xcode project (SwiftUI + CoreNFC), not just a
 concept doc. It builds and its unit tests pass; see **Status** below for
 exactly what has and hasn't been verified on real hardware.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/iphone-17-pro-max/idle.png" width="200" alt="Locked idle screen">
+  <img src="docs/screenshots/iphone-17-pro-max/story-magic-monkey.png" width="200" alt="A story playing">
+  <img src="docs/screenshots/iphone-17-pro-max/vocab-letter-m.png" width="200" alt="A vocabulary card">
+  <img src="docs/screenshots/iphone-17-pro-max/music-lullaby.png" width="200" alt="A lullaby playing">
+</p>
+
+These are captured automatically -- see **Screenshot automation** below --
+not mocked up. More sizes/scenes are under `docs/screenshots/`.
+
+## Landing page & App Store pages
+
+`docs/` is a small static site (landing page, Privacy Policy, Terms of
+Use, Support/FAQ) meant to satisfy the URLs App Store Connect requires at
+submission time, and to eventually be the App's marketing page. It has no
+build step and no external dependencies (no CDN fonts, no analytics --
+matching the app's own no-tracking stance), so it's just plain HTML/CSS
+under `docs/`:
+
+```
+docs/
+  index.html      # Landing page (includes the screenshot gallery)
+  privacy.html    # Privacy Policy (App Store Connect requires this URL)
+  terms.html      # Terms of Use / EULA
+  support.html    # Support page + FAQ (App Store Connect requires this URL too)
+  screenshots/    # Output of Scripts/capture_screenshots.sh
+  assets/style.css
+```
+
+`.github/workflows/deploy-pages.yml` publishes `docs/` to GitHub Pages
+automatically on every push to `main` that touches `docs/`. Once GitHub
+Pages is enabled for this repo (Settings -> Pages -> Source: GitHub
+Actions), the site is live at
+`https://tianhaoz95.github.io/TapStory/`.
+
+**Before submitting to the App Store:** the Privacy Policy and Terms of
+Use are accurate drafts (they describe this codebase's actual behavior --
+no network calls, no third-party SDKs, local-only storage) but are not a
+substitute for legal review. Replace the placeholder `support@tapstory.app`
+contact address, and have both pages reviewed by a lawyer before treating
+them as final.
+
+## Screenshot automation
+
+`Scripts/capture_screenshots.sh` produces every image under
+`docs/screenshots/` with no manual interaction and no XCUITest gesture
+scripting:
+
+```sh
+./Scripts/capture_screenshots.sh
+```
+
+It builds the app, boots one simulator per required App Store screenshot
+size class (currently "iPhone 17 Pro Max" for 6.9" and "iPhone 11 Pro Max"
+for 6.5" -- adjust the list at the top of the script if Apple's
+requirements change), and for each of a handful of "scenes" (idle screen,
+a story, a vocab card, a lullaby, the parent dashboard) launches the app
+with an environment variable that a `#if DEBUG`-only hook
+(`ScreenshotAutomation.swift`) reads on launch to jump straight into that
+state -- reusing the same debug mechanism as `DebugSimulateTapButton`,
+since CoreNFC can't be exercised in the Simulator at all. This is
+dramatically more reliable than scripting actual taps, and, being
+`#if DEBUG`-gated, has zero footprint in a Release build.
+
 ## Why this shape
 
 - **No accounts, no network, no analytics.** Everything -- bundled sample

@@ -29,7 +29,9 @@ struct ChildLockedShellView: View {
             VStack {
                 HStack {
                     #if DEBUG
-                    DebugSimulateTapButton()
+                    if !ScreenshotAutomation.isActive {
+                        DebugSimulateTapButton()
+                    }
                     #endif
                     Spacer()
                 }
@@ -43,7 +45,12 @@ struct ChildLockedShellView: View {
         }
         .ignoresSafeArea()
         .statusBarHidden(true)
-        .onAppear { coordinator.startListening() }
+        .onAppear {
+            coordinator.startListening()
+            #if DEBUG
+            ScreenshotAutomation.applyIfNeeded(isDashboardPresented: $isDashboardPresented)
+            #endif
+        }
         .sheet(isPresented: $isParentChallengePresented) {
             ParentGateChallengeView(
                 onUnlocked: {

@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.tapstory
   deploymentTarget:
     iOS: "16.0"
+    watchOS: "10.0"
   createIntermediateGroups: true
 
 settings:
@@ -20,6 +21,7 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: App/TapStory
+      - path: Shared/WatchConnectivity
     resources:
       # Note: this does NOT preserve the Stories/Vocab/Music/Audio
       # subfolder structure inside the built app -- Xcode's Copy Bundle
@@ -29,6 +31,10 @@ targets:
       # assume subdirectories exist. The subfolders remain purely for our
       # own organization on disk.
       - path: App/TapStory/Resources/BundledContent
+    dependencies:
+      - target: TapStoryWatch
+        embed: true
+        codeSignOnCopy: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tapstory.TapStory
@@ -71,3 +77,39 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tapstory.TapStoryTests
         GENERATE_INFOPLIST_FILE: true
+
+  # Watch companion: a remote control for the parent (toggle Screen
+  # Display, stop playback, or start a saved story) that never touches
+  # the phone a toddler is holding. Modern single-target watch app (no
+  # separate WatchKit Extension target needed) embedded into TapStory via
+  # the `dependencies: embed` above. See Shared/WatchConnectivity for the
+  # wire protocol both targets share.
+  TapStoryWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: App/TapStoryWatch
+      - path: Shared/WatchConnectivity
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tapstory.TapStory.watchkitapp
+        PRODUCT_NAME: TapStoryWatch
+        INFOPLIST_FILE: App/TapStoryWatch/Info.plist
+        GENERATE_INFOPLIST_FILE: false
+        TARGETED_DEVICE_FAMILY: "4"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SKIP_INSTALL: NO
+    info:
+      path: App/TapStoryWatch/Info.plist
+      properties:
+        CFBundleDisplayName: TapStory
+        WKApplication: true
+        UIDeviceFamily:
+          - 4
+        WKCompanionAppBundleIdentifier: com.tapstory.TapStory
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        WKRunsIndependentlyOfCompanionApp: false
+    scheme: {}

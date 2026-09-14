@@ -16,6 +16,11 @@ showing the story page, word, or song on screen while it plays, for
 whoever wants that -- but audio-only is the default and the whole point.
 See **Screen Display: audio-only by default** below.
 
+A companion **Apple Watch app** lets a parent toggle Screen Display, stop
+playback, or start a saved story from their wrist -- so acting on any of
+that never means picking up the phone a toddler is holding. See **Watch
+companion app** below.
+
 This repo is a working Xcode project (SwiftUI + CoreNFC), not just a
 concept doc. It builds and its unit tests pass; see **Status** below for
 exactly what has and hasn't been verified on real hardware.
@@ -59,6 +64,64 @@ which was correctly flagged as working against the whole "screen-free"
 premise. Keeping both modes on one code path (rather than forking audio
 logic away from a separate "visual" path) means the two modes can never
 drift out of sync with each other.
+
+## Watch companion app
+
+`TapStoryWatch` is a small Apple Watch app whose entire purpose is to let
+a parent act on the phone *without touching it* -- reaching for the phone
+itself would add exactly the screen time this app exists to avoid. It's
+a modern single-target watchOS app (no separate WatchKit Extension
+target needed), embedded into `TapStory` and built from the same
+`TapStory.xcodeproj` / `project.yml`.
+
+**What it does**, all via `WatchConnectivity` (`WCSession`) -- a local
+link between paired devices over Bluetooth/local WiFi, no internet or
+account involved, same as everything else in this app:
+
+- **Toggle Screen Display** on/off remotely.
+- **Stop playback** -- a "that's enough for now" button that returns the
+  phone to idle.
+- **See what's currently playing** -- a passive "Now Playing" readout.
+- **Start a saved story/song from the wrist** -- pick anything from "My
+  Tags" and play it on the phone, exactly as if its tag had been tapped,
+  with no physical tag involved at all
+  (`PlaybackCoordinator.remotePlay(entryID:)`).
+
+**How the two sides stay in sync:** `Shared/WatchConnectivity/WatchMessage.swift`
+defines the entire wire protocol (`WatchCommand` sent Watch -> iPhone,
+`PhoneStatus` pushed iPhone -> Watch) and is compiled into *both* targets
+rather than hand-copied, so they can never drift apart. `PhoneWatchConnectivityService`
+(iOS, `App/TapStory/Watch/`) pushes a fresh `PhoneStatus` via
+`updateApplicationContext` on every relevant `AppSettings`/`PlaybackCoordinator`/`TagLibraryStore`
+change; `WatchConnectivityService` (watchOS) sends commands and applies
+them to its local `status` optimistically (the toggle flips the instant
+you tap it) before the phone's next real push corrects it if needed, and
+falls back to queued delivery (`transferUserInfo`) if the phone isn't
+immediately reachable rather than dropping the command.
+
+**A real `xcodebuild` gotcha this surfaced:** never pass an explicit
+`-sdk` (e.g. `-sdk iphonesimulator`) when building/testing the `TapStory`
+scheme. Doing so forces that SDK onto the *entire* target graph,
+including the embedded `TapStoryWatch` dependency -- it still compiles
+(the resulting error is invisible until install), but produces an
+embedded watch app built for the wrong platform, which fails at install
+time with `"...does not have a WKWatchKitApp or WKApplication key..."`
+or `"...UIDeviceFamily key does not specify...device family 4"` --
+neither of which points at the real cause. Plain `-destination` resolves
+each target to its own declared platform correctly. All commands in this
+README and in `Scripts/*.sh` already avoid `-sdk` for this reason.
+
+**Verified:** both targets build correctly for their own platform
+(`xcodebuild -scheme TapStory` and `-scheme TapStoryWatch` independently,
+each with the correct `SDKROOT`/`MinimumOSVersion`/`UIDeviceFamily` in
+their built `Info.plist`s), the combined app+embedded-watch install and
+launch correctly on a Simulator, and the Watch app's own UI renders
+correctly standalone. **Not verified:** an actual paired Watch<->iPhone
+message round-trip -- Simulator-to-Simulator `WCSession` pairing is a
+known-unreliable substitute for real hardware (same caveat as CoreNFC),
+and this repo's two iPhone/Watch Simulators were already at their
+pairing limits when this was built. This needs a real Watch + iPhone
+pair to fully confirm.
 
 ## Landing page & App Store pages
 
@@ -148,7 +211,7 @@ idle screen that looks identical to the "idle" scene's own screenshot.
 | Area | Status |
 |---|---|
 | Project builds (`xcodebuild ... build`) | ✅ Verified, iOS Simulator SDK |
-| Unit tests (`xcodebuild ... test`) | ✅ 32/32 passing |
+| Unit tests (`xcodebuild ... test`) | ✅ 38/38 passing |
 | Idle/locked shell renders correctly | ✅ Verified via Simulator screenshot |
 | Screen Display off (default) truly shows no visual change while content plays | ✅ Verified via Simulator screenshot -- see **Screen Display: audio-only by default** |
 | On-device speech synthesis (`AVSpeechSynthesizer`) | ✅ Works in Simulator too (unlike CoreNFC) -- this is the default authoring path |
@@ -156,6 +219,8 @@ idle screen that looks identical to the "idle" scene's own screenshot.
 | Guided Access flow | ⚠️ Requires a physical device (Guided Access isn't meaningful in Simulator) |
 | Parent-gate long-press, full create-tag flow, audio recording | ⚠️ Built and code-reviewed, but not exercised end-to-end by an automated UI test (long-press + multi-step flows are impractical to script against the Simulator without XCUITest, which wasn't set up in this pass) |
 | Bundled lullaby audio | ⚠️ Placeholder text-to-speech (macOS `say`), not real music -- see **Bundled sample content** |
+| Watch app builds, embeds, installs, and launches | ✅ Verified via Simulator (both platforms independently, and the combined app+embed) -- see **Watch companion app** |
+| Watch<->iPhone `WatchConnectivity` message round-trip | ⚠️ **Not verified end-to-end** -- Simulator-to-Simulator `WCSession` pairing is unreliable (same caveat as CoreNFC); needs a real Watch + iPhone pair |
 
 **Bottom line:** the architecture, schema, NFC read/write code, and every
 screen are implemented and compiling/passing tests, but this has not yet
@@ -186,6 +251,8 @@ App/TapStory/
     NFCReaderService.swift          # Continuous NDEF read session for the child shell
     NFCWriterService.swift          # Writes a TagReference (just an id) to a blank/reusable tag
     TagReference+NDEF.swift         # TagReference <-> NFCNDEFPayload bridging
+  Watch/
+    PhoneWatchConnectivityService.swift  # iOS side of the Watch remote control (WCSession)
   UI/
     Child/            # What the toddler sees: idle prompt, locked shell, error state,
                        # ScreenshotAutomation.swift (#if DEBUG launch-argument scene driver)
@@ -194,6 +261,12 @@ App/TapStory/
     CreateTag/          # Multi-step "make a new magic tag" flow (bundled or record-your-own)
     Root/               # App-wide chrome (tint, forced light appearance)
   Resources/BundledContent/   # Sample stories/vocab/music (JSON + generated placeholder audio)
+App/TapStoryWatch/               # Watch companion app (embedded into TapStory, see project.yml)
+  TapStoryWatchApp.swift          # @main entry point
+  ContentView.swift               # The entire Watch UI: now playing, Screen Display toggle, saved tags
+  WatchConnectivityService.swift  # Watch side of the remote control (WCSession)
+Shared/WatchConnectivity/
+  WatchMessage.swift               # WatchCommand / PhoneStatus -- compiled into BOTH app targets
 TapStoryTests/            # Unit tests for the schema, NDEF bridging, and actor dispatch
 Scripts/generate_sample_audio.sh   # Regenerates the placeholder narration via macOS `say`
 ```
@@ -214,19 +287,35 @@ Or from the command line:
 ```sh
 xcodegen generate
 xcodebuild -project TapStory.xcodeproj -scheme TapStory \
-  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  -destination 'generic/platform=iOS Simulator' \
   -configuration Debug CODE_SIGNING_ALLOWED=NO build
 
 xcodebuild -project TapStory.xcodeproj -scheme TapStory \
-  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -configuration Debug CODE_SIGNING_ALLOWED=NO test
 ```
 
-**To actually test NFC and Guided Access**, build to a physical iPhone 7 or
-later: open the project in Xcode, pick your phone as the run destination,
-set your own Team under Signing & Capabilities (bundle id is currently the
-placeholder `com.tapstory.TapStory` -- change it to something under your
-own Apple ID/team), and run.
+**Never add an explicit `-sdk` to these** -- see **Watch companion app**
+for why that silently breaks the embedded watch target.
+
+To build/run the Watch app on its own (e.g. to iterate on its UI without
+reinstalling the iPhone app), use the `TapStoryWatch` scheme against a
+watchOS Simulator destination instead:
+
+```sh
+xcodebuild -project TapStory.xcodeproj -scheme TapStoryWatch \
+  -destination 'generic/platform=watchOS Simulator' \
+  -configuration Debug CODE_SIGNING_ALLOWED=NO build
+```
+
+**To actually test NFC, Guided Access, and Watch<->iPhone communication**,
+build to a physical iPhone 7 or later paired with a real Apple Watch:
+open the project in Xcode, pick your phone as the run destination, set
+your own Team under Signing & Capabilities **for both the `TapStory` and
+`TapStoryWatch` targets** (bundle ids are currently the placeholders
+`com.tapstory.TapStory` / `com.tapstory.TapStory.watchkitapp` -- change
+them to something under your own Apple ID/team, keeping the `.watchkitapp`
+suffix relationship intact), and run.
 
 ## Schema & extensibility
 
@@ -410,6 +499,14 @@ swapping for real artwork before shipping.
   kids-category privacy requirements (no ads, no third-party analytics,
   no data collection -- this app already has none of that, which should
   make review comparatively easy).
+- **Watch<->iPhone communication is unverified on real hardware.** Every
+  build/install-level check has passed on Simulator, but an actual
+  message round-trip needs a real paired Watch + iPhone -- see **Watch
+  companion app** and the Status table.
+- **The Watch app requires a companion iPhone.** `WKRunsIndependentlyOfCompanionApp`
+  is `false`, matching what it actually does (it's a remote for the
+  phone, not a standalone experience) -- it won't do anything useful if
+  the iPhone app has never been run at least once to establish pairing.
 
 ## Ideas for follow-up work
 
@@ -428,3 +525,7 @@ swapping for real artwork before shipping.
   end-to-end.
 - On-device (physical iPhone) verification pass for NFC read/write and
   Guided Access, since none of that is exercisable in the Simulator.
+- On-device (real Watch + iPhone pair) verification of the Watch app's
+  `WatchConnectivity` round-trip, for the same reason.
+- A Watch complication or Smart Stack widget for one-glance "Now Playing" /
+  Screen Display status without even opening the Watch app.

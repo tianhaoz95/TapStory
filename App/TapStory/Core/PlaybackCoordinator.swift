@@ -39,6 +39,21 @@ final class PlaybackCoordinator: ObservableObject {
         currentRecord = nil
     }
 
+    /// Title of whatever's currently playing, using the same `"title"`
+    /// payload-field convention `BundledLibrary` relies on for its picker
+    /// UI. Used to show a "Now Playing" readout on the Watch app.
+    var nowPlayingTitle: String? {
+        currentRecord?.payload["title"]?.stringValue
+    }
+
+    /// Plays a saved library entry by id, exactly as if its physical tag
+    /// had been tapped -- this is what lets the Watch app's "play a saved
+    /// story" remote control work without any physical tag involved.
+    func remotePlay(entryID: String) {
+        guard let entry = TagLibraryStore.shared.entry(withID: entryID) else { return }
+        present(entry.record)
+    }
+
     /// Dismisses whichever error state is currently showing (called by
     /// `PlaybackErrorView` after its brief auto-dismiss timer).
     func clearError() {

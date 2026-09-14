@@ -36,8 +36,13 @@ declare -a SCENES=(
 
 echo "== Building TapStory (Debug, Simulator) =="
 xcodegen generate >/dev/null
+# No explicit -sdk flag: since TapStory embeds the TapStoryWatch
+# companion target, `-sdk iphonesimulator` would force that platform onto
+# the entire target graph (including the watch target), silently
+# producing an invalid embedded watch app that fails to install. Plain
+# `-destination` resolves each target to its own declared platform.
 xcodebuild -project TapStory.xcodeproj -scheme TapStory \
-  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  -destination 'generic/platform=iOS Simulator' \
   -configuration Debug CODE_SIGNING_ALLOWED=NO build \
   | grep -E "error:|BUILD SUCCEEDED|BUILD FAILED" || true
 

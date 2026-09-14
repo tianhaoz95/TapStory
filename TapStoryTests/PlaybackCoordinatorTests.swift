@@ -62,4 +62,47 @@ final class PlaybackCoordinatorTests: XCTestCase {
         }
         wait(for: [exp], timeout: 1)
     }
+
+    func testPlaybackPausesAndResumesNFCListening() throws {
+        let payload = try JSONValue.from(VocabPayload(
+            title: "Pause Resume Test",
+            word: "Pause",
+            letter: nil,
+            symbol: "pause.fill",
+            audio: MediaRef(source: .speech, ref: "Pause.")
+        ))
+        let record = ContentRecord(type: VocabActor.typeIdentifier, payload: payload)
+        let entry = TagLibraryEntry(title: "Pause Resume Test", record: record)
+        TagLibraryStore.shared.add(entry)
+        defer {
+            TagLibraryStore.shared.delete(id: entry.id)
+            PlaybackCoordinator.shared.stopListening()
+        }
+
+        // Start listening while idle
+        PlaybackCoordinator.shared.startListening()
+        XCTAssertTrue(PlaybackCoordinator.shared.isListeningRequested)
+        XCTAssertTrue(NFCReaderService.shared.isListening)
+
+        // Present content -> NFC listening should pause immediately
+        let expPlay = expectation(description: "Playback starts and pauses NFC")
+        PlaybackCoordinator.shared.remotePlay(entryID: entry.id)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            XCTAssertNotNil(PlaybackCoordinator.shared.currentRecord)
+            XCTAssertFalse(NFCReaderService.shared.isListening)
+            expPlay.fulfill()
+        }
+        wait(for: [expPlay], timeout: 1)
+
+        // Finish content -> NFC listening should resume
+        PlaybackCoordinator.shared.finishCurrent()
+        XCTAssertNil(PlaybackCoordinator.shared.currentRecord)
+        XCTAssertTrue(PlaybackCoordinator.shared.isListeningRequested)
+        XCTAssertTrue(NFCReaderService.shared.isListening)
+
+        // Stop listening -> NFC listening should stop completely
+        PlaybackCoordinator.shared.stopListening()
+        XCTAssertFalse(PlaybackCoordinator.shared.isListeningRequested)
+        XCTAssertFalse(NFCReaderService.shared.isListening)
+    }
 }

@@ -15,7 +15,7 @@ struct GuidedAccessHelpView: View {
             Section("Every time you hand over TapStory") {
                 stepRow(1, "Open TapStory.")
                 stepRow(2, "Triple-click the side button (or top button on older iPhones).")
-                stepRow(3, "Tap Options to circle out any areas you want to disable (usually not needed -- TapStory already ignores touches outside the parent gate), then tap Start.")
+                stepRow(3, "Tap Options to turn off \"Touch\" (or circle the bottom half of the screen). This prevents toddlers from accidentally tapping the system \"Cancel\" button and keeps scanning continuous and peaceful.")
                 stepRow(4, "Hand the phone to your child. They can now only use TapStory, and only by tapping tags -- the Home gesture, App Switcher, and other apps are unreachable.")
             }
 

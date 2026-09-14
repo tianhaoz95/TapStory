@@ -58,6 +58,12 @@ Capture App Store / landing-page screenshots (boots simulators, no manual intera
 ./Scripts/capture_screenshots.sh && python3 Scripts/frame_screenshots.py
 ```
 
+Bump version, commit, push, and create a GitHub Release (which automatically triggers the TestFlight upload workflow):
+
+```sh
+./Scripts/release.sh [patch|minor|major|<version>]
+```
+
 **Never pass `-sdk iphonesimulator` (or any explicit `-sdk`) on these commands.** The app embeds a watchOS companion target (`TapStoryWatch`); an explicit `-sdk` forces that SDK onto the *entire* target graph, silently building the watch target for the wrong platform too, which compiles fine but fails at install time with an opaque "companion watch app validation" error. Plain `-destination` resolves each target to its own declared platform correctly.
 
 There is no linter/formatter configured in this repo.
@@ -113,7 +119,7 @@ iOS's own "Ready to Scan" system sheet is layered on top of `IdleTapPromptView` 
 
 ### TestFlight release automation
 
-`.github/workflows/testflight.yml` (manual `workflow_dispatch` trigger only) archives, signs, and uploads a build via `xcodebuild -exportArchive` with `destination: upload` in its `exportOptionsPlist` — this Xcode version performs the App Store Connect upload directly during export, no separate `xcrun altool` step needed (and `method` must be `app-store-connect`; the older `app-store` value is rejected outright by this Xcode version, not just deprecated). All 7 required secrets are already configured: 4 from this machine's Apple Distribution identity, and 3 App Store Connect API key secrets recovered from this machine's `FA_ASC_KEY_ID`/`FA_ASC_ISSUER_ID`/`FA_KEY_LOCATION` env vars (a prior fastlane setup). Same `-sdk`-flag gotcha as local builds applies here (see above) — the workflow deliberately never passes one.
+`.github/workflows/testflight.yml` (triggered on GitHub release creation/publication or manually via `workflow_dispatch`) archives, signs, and uploads a build via `xcodebuild -exportArchive` with `destination: upload` in its `exportOptionsPlist` — this Xcode version performs the App Store Connect upload directly during export, no separate `xcrun altool` step needed (and `method` must be `app-store-connect`; the older `app-store` value is rejected outright by this Xcode version, not just deprecated). All 7 required secrets are already configured: 4 from this machine's Apple Distribution identity, and 3 App Store Connect API key secrets recovered from this machine's `FA_ASC_KEY_ID`/`FA_ASC_ISSUER_ID`/`FA_KEY_LOCATION` env vars (a prior fastlane setup). Same `-sdk`-flag gotcha as local builds applies here (see above) — the workflow deliberately never passes one.
 
 Four signing/packaging facts here are non-obvious and each one cost a full round of misleading errors:
 

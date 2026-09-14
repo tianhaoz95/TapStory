@@ -21,6 +21,7 @@ final class NFCReaderService: NSObject, ObservableObject {
 
     @Published private(set) var lastError: String?
     @Published private(set) var isSessionActive = false
+    @Published private(set) var isListening = false
 
     /// A rolling log of recent session invalidations (newest first, capped
     /// at 10), for diagnosing on-device without a Mac/Xcode attached --
@@ -35,14 +36,15 @@ final class NFCReaderService: NSObject, ObservableObject {
 
     private var session: NFCNDEFReaderSession?
     private var shouldKeepListening = false
+    private var restartWorkItem: DispatchWorkItem?
     private var sessionStartedAt: Date?
     private var consecutiveFastFailures = 0
     private let idleAlertMessage = "Hold your toy or card near the top of the phone."
 
     /// Restart delay after a normal invalidation (a completed read, a
-    /// session timeout) -- kept short so the "always ready to tap" feel
-    /// isn't lost.
-    private let quickRestartDelay: TimeInterval = 0.4
+    /// session timeout) -- kept long enough for the iOS NFC controller to
+    /// fully release its transceiver and avoid `systemIsBusy` (error 201).
+    private let quickRestartDelay: TimeInterval = 1.2
 
     /// Restart delay after the system sheet's own "Cancel"/"Done" button is
     /// tapped. The sheet is modal and blocks all touches to the app
@@ -51,7 +53,7 @@ final class NFCReaderService: NSObject, ObservableObject {
     /// usable window to reach it at all. A deliberate tap on the system
     /// button is a strong enough signal of intent (far more specific than a
     /// toddler tapping the tag-detection area) to justify a longer gap here.
-    private let parentGateRestartDelay: TimeInterval = 8.0
+    private let parentGateRestartDelay: TimeInterval = 12.0
 
     /// A session that dies faster than this (for a reason other than a
     /// user cancel) is treated as a failure loop, not a normal read/timeout
@@ -63,12 +65,18 @@ final class NFCReaderService: NSObject, ObservableObject {
     private let maxBackoffDelay: TimeInterval = 10.0
 
     func startContinuousListening() {
+        isListening = true
         shouldKeepListening = true
+        restartWorkItem?.cancel()
+        restartWorkItem = nil
         beginSession()
     }
 
     func stopListening() {
+        isListening = false
         shouldKeepListening = false
+        restartWorkItem?.cancel()
+        restartWorkItem = nil
         session?.invalidate()
         session = nil
         isSessionActive = false
@@ -79,6 +87,10 @@ final class NFCReaderService: NSObject, ObservableObject {
         guard NFCAvailability.isSupported else {
             lastError = "This device doesn't support NFC scanning."
             return
+        }
+        if let existing = session {
+            existing.invalidate()
+            session = nil
         }
         let newSession = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: false)
         newSession.alertMessage = idleAlertMessage
@@ -91,10 +103,13 @@ final class NFCReaderService: NSObject, ObservableObject {
 
     private func scheduleRestart(after delay: TimeInterval) {
         guard shouldKeepListening else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+        restartWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self, self.shouldKeepListening else { return }
             self.beginSession()
         }
+        restartWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
     private func logInvalidation(error: Error, lifetime: TimeInterval, delay: TimeInterval) {

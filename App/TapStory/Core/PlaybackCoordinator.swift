@@ -18,6 +18,11 @@ final class PlaybackCoordinator: ObservableObject {
     /// written by a different phone/install.
     @Published private(set) var lastUnresolvedTagID: String?
 
+    /// Tracks whether the child shell is actively in listening mode.
+    /// When true, listening runs while idle, but is temporarily paused during
+    /// content playback to keep the screen peaceful and eliminate popups.
+    private(set) var isListeningRequested = false
+
     private init() {
         NFCReaderService.shared.onTagReferenceDetected = { [weak self] reference in
             self?.handle(reference)
@@ -25,11 +30,15 @@ final class PlaybackCoordinator: ObservableObject {
     }
 
     func startListening() {
+        isListeningRequested = true
         UIApplication.shared.isIdleTimerDisabled = true
-        NFCReaderService.shared.startContinuousListening()
+        if currentRecord == nil {
+            NFCReaderService.shared.startContinuousListening()
+        }
     }
 
     func stopListening() {
+        isListeningRequested = false
         UIApplication.shared.isIdleTimerDisabled = false
         NFCReaderService.shared.stopListening()
         currentRecord = nil
@@ -37,6 +46,9 @@ final class PlaybackCoordinator: ObservableObject {
 
     func finishCurrent() {
         currentRecord = nil
+        if isListeningRequested {
+            NFCReaderService.shared.startContinuousListening()
+        }
     }
 
     /// Title of whatever's currently playing, using the same `"title"`
@@ -91,6 +103,10 @@ final class PlaybackCoordinator: ObservableObject {
             return
         }
         lastUnrecognizedType = nil
+        // Pause NFC scanning while content plays so the "Ready to Scan" sheet
+        // is dismissed immediately and never interrupts or distracts children
+        // during a story, word, or song.
+        NFCReaderService.shared.stopListening()
         // Force a fresh view even if the same tag is tapped twice in a row
         // by clearing first; SwiftUI otherwise sees "no change" and won't
         // restart playback from the top.

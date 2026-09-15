@@ -51,6 +51,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "0.1.1"
         CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
       # Automatic signing's "purpose" (development vs distribution)
       # resolution turned out to be unreliable for `xcodebuild archive` on
       # the CLI regardless of DEVELOPMENT_TEAM/CODE_SIGN_IDENTITY overrides
@@ -86,6 +87,8 @@ targets:
         CFBundleDisplayName: TapStory
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
         UIRequiresFullScreen: true
         NFCReaderUsageDescription: "TapStory reads the tag on your toy or card to start a story, song, or learning activity."

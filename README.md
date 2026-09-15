@@ -149,7 +149,7 @@ Pages is enabled for this repo (Settings -> Pages -> Source: GitHub
 Actions), the site is live at
 `https://tianhaoz95.github.io/TapStory/`.
 
-**Before submitting to the App Store:** the Privacy Policy and Terms of
+**Before submitting to the App Store:** all store listing copy, keywords, review notes, and exact screenshot mappings are prepared for easy copy-pasting in [APP_STORE_METADATA.md](APP_STORE_METADATA.md). The Privacy Policy and Terms of
 Use are accurate drafts (they describe this codebase's actual behavior --
 no network calls, no third-party SDKs, local-only storage) but are not a
 substitute for legal review. Replace the placeholder `support@tapstory.app`

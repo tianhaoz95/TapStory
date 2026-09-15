@@ -20,6 +20,7 @@ OUT_ROOT="${1:-docs/screenshots}"
 DEVICE_TYPES=(
   "iPhone 17 Pro Max"
   "iPhone 11 Pro Max"
+  "iPad Pro 13-inch (M5)"
 )
 
 # "<content-type>:<bundled-file-stem>" scenes reuse the app's own bundled
@@ -54,7 +55,7 @@ fi
 echo "App: $APP_PATH"
 
 slugify() {
-  echo "$1" | tr '[:upper:] ' '[:lower:]-'
+  echo "$1" | tr '[:upper:] ' '[:lower:]-' | sed 's/[()]//g'
 }
 
 for DEVICE_TYPE in "${DEVICE_TYPES[@]}"; do
@@ -82,8 +83,17 @@ data = json.load(sys.stdin)
 runtimes = [r for r in data['runtimes'] if r['name'].startswith('iOS') and r['isAvailable']]
 print(runtimes[-1]['identifier'])
 ")
+    DEVICE_TYPE_ID=$(xcrun simctl list devicetypes -j | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+match = next((dt['identifier'] for dt in data['devicetypes'] if '$DEVICE_TYPE' in dt['name']), None)
+if match:
+    print(match)
+else:
+    sys.exit(1)
+")
     echo "Creating simulator '$SIM_NAME'..."
-    DEVICE_ID=$(xcrun simctl create "$SIM_NAME" "com.apple.CoreSimulator.SimDeviceType.$(echo "$DEVICE_TYPE" | sed 's/ /-/g')" "$RUNTIME")
+    DEVICE_ID=$(xcrun simctl create "$SIM_NAME" "$DEVICE_TYPE_ID" "$RUNTIME")
   fi
 
   # `simctl bootstatus -b` was observed hanging indefinitely even after
@@ -134,5 +144,20 @@ for devices in data['devices'].values():
   xcrun simctl shutdown "$DEVICE_ID" >/dev/null 2>&1 || true
 done
 
+# Populate organized folders for App Store Connect upload
+mkdir -p "$OUT_ROOT/phone" "$OUT_ROOT/ipad" "$OUT_ROOT/watch"
+if [ -d "$OUT_ROOT/iphone-11-pro-max" ]; then
+  cp "$OUT_ROOT/iphone-11-pro-max/"*.png "$OUT_ROOT/phone/"
+fi
+if [ -d "$OUT_ROOT/ipad-pro-13-inch-m5" ]; then
+  cp "$OUT_ROOT/ipad-pro-13-inch-m5/"*.png "$OUT_ROOT/ipad/"
+fi
+if [ -d "$OUT_ROOT/apple-watch" ]; then
+  cp "$OUT_ROOT/apple-watch/"*.png "$OUT_ROOT/watch/"
+fi
+
 echo ""
 echo "Done. Screenshots are in $OUT_ROOT/"
+echo "  - Phone (6.5\" / 1242x2688): $OUT_ROOT/phone/"
+echo "  - iPad (13\" / 2064x2752):   $OUT_ROOT/ipad/"
+echo "  - Apple Watch (416x496):    $OUT_ROOT/watch/"
